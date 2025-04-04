@@ -84,6 +84,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   var list_foottime = [];
   var list_hipstime = [];
 
+  List<List<int>> rawKneeData = [];
+  List<List<int>> rawFootData = [];
+  List<List<int>> rawHipsData = [];
+
   List<int> foot_state = [];
 
   bool _isRunning = false;
@@ -141,11 +145,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          //callback is the old function
-          //valKnee = callback(bytes1, deviceType);
-          //kneejson returns map
+          rawKneeData.add(bytes1);
+          /*
+          
           kneejson = callbackUnpackK(bytes1, deviceType);
           //print('Kneejson: $kneejson');
+
           if (_isRunning == true &&
               footjson.isNotEmpty &&
               hipsjson.isNotEmpty) {
@@ -166,12 +171,15 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               },
             );
           }
+          */
         });
       });
     } else if (deviceType == 'foot') {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
+          rawFootData.add(bytes2);
+          /*
           footjson = callbackUnpackF(bytes2, deviceType);
           //print(footjson);
 
@@ -199,12 +207,15 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               },
             );
           }
+          */
         });
       });
     } else if (deviceType == 'hips') {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
+          rawHipsData.add(bytes3);
+          /*
           hipsjson = callbackUnpackH(bytes3, deviceType);
           //final timestamphips = DateTime.now();
 
@@ -229,6 +240,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               },
             );
           }
+          */
           //}
         });
       });
@@ -253,15 +265,87 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     setState(() {
       _isRunning = false;
       //_gaitcyclegraph();
-      final first_foot = time_foot[0];
-      final first_knee = time_knee[0];
-      final first_hips = time_hips[0];
+      //final first_foot = time_foot[0];
+      //final first_knee = time_knee[0];
+      //final first_hips = time_hips[0];
 
-      final delay_hips = first_hips['timestamp'].millisecondsSinceEpoch -
-          first_knee['timestamp'].millisecondsSinceEpoch;
+      //final delay_hips = first_hips['timestamp'].millisecondsSinceEpoch -
+      // first_knee['timestamp'].millisecondsSinceEpoch;
 
-      final delay_foot = first_foot['timestamp'].millisecondsSinceEpoch -
-          first_knee['timestamp'].millisecondsSinceEpoch;
+      // final delay_foot = first_foot['timestamp'].millisecondsSinceEpoch -
+      // first_knee['timestamp'].millisecondsSinceEpoch;
+      var meta_count = 0;
+      var knee_count = 0;
+      var foot_count = 0;
+      var hips_count = 0;
+      var current_count = 0;
+      var one_ctr = 0;
+      for (var b in rawKneeData) {
+        kneejson = callbackUnpackK(b, 'knee');
+        if (kneejson.isNotEmpty) {
+          if (one_ctr == 0) {
+            knee_count = kneejson['counter'];
+            one_ctr = 1;
+          }
+          current_count = kneejson['counter'];
+          if (current_count == knee_count) {
+            knee_count = current_count;
+            if (meta_count >= 3) {
+              meta_count = 0;
+              List<double> knee_prox = kneejson['prox'];
+              for (var knee_val in knee_prox) {
+                Map<String, dynamic> knee_point = {
+                  'timestamp': DateTime.now(),
+                  'data': knee_val,
+                };
+                print(knee_point);
+                print(meta_count);
+                time_knee.add(knee_point);
+              }
+            }
+            meta_count += 1;
+          } else {
+            knee_count = current_count;
+          }
+        }
+      }
+
+      // Process raw data for foot
+      for (var a in rawFootData) {
+        footjson = callbackUnpackF(a, 'foot');
+        //print('foot: $footjson');
+        if (footjson.isNotEmpty) {
+          List<double> foot_prox = footjson['prox'];
+          for (var foot_val in foot_prox) {
+            Map<String, dynamic> foot_point = {
+              'timestamp': DateTime.now(),
+              'data': foot_val,
+            };
+            time_foot.add(foot_point);
+          }
+        }
+      }
+
+      // Process raw data for hips
+      for (var c in rawHipsData) {
+        hipsjson = callbackUnpackH(c, 'hips');
+        //print('hips: $hipsjson');
+        if (hipsjson.isNotEmpty) {
+          List<double> hips_prox = hipsjson['prox'];
+          for (var hips_val in hips_prox) {
+            Map<String, dynamic> hips_point = {
+              'timestamp': DateTime.now(),
+              'data': hips_val,
+            };
+            time_hips.add(hips_point);
+          }
+        }
+      }
+
+      // Clear the buffers after processing
+      rawKneeData.clear();
+      rawFootData.clear();
+      rawHipsData.clear();
 
       _kneedataPoints = time_knee
           .map((point) => FlSpot(
@@ -328,7 +412,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                     lineBarsData: [
                       LineChartBarData(
                         spots: _kneedataPoints,
-                        isCurved: true,
+                        //isCurved: true,
+                        isCurved: false,
                         dotData: FlDotData(
                           show: false,
                         ),
@@ -373,7 +458,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                     lineBarsData: [
                       LineChartBarData(
                         spots: _footdataPoints,
-                        isCurved: true,
+                        //isCurved: true,
+                        isCurved: false,
                         dotData: FlDotData(
                           show: false,
                         ),
@@ -418,7 +504,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                     lineBarsData: [
                       LineChartBarData(
                         spots: _hipsdataPoints,
-                        isCurved: true,
+                        //isCurved: true,
+                        isCurved: false,
                         dotData: FlDotData(
                           show: false,
                         ),

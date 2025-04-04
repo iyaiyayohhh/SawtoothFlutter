@@ -23,11 +23,11 @@ var counterk = 0;
 
 var jdataStates = [0, 0, 0, 0];
 var footjdatadist = [0.0, 0.0, 0.0, 0.0];
-var footjdataprox = [0.0, 0.0, 0.0, 0.0];
+var footjdataprox = [-1.0, -1.0, -1.0, -1.0];
 var kneejdatadist = [0.0, 0.0, 0.0, 0.0];
-var kneejdataprox = [0.0, 0.0, 0.0, 0.0];
+var kneejdataprox = [-1.0, -1.0, -1.0, -1.0];
 var hipsjdatadist = [0.0, 0.0, 0.0, 0.0];
-var hipsjdataprox = [0.0, 0.0, 0.0, 0.0];
+var hipsjdataprox = [-1.0, -1.0, -1.0, -1.0];
 
 double pgyroA = 0.0;
 double paccelA = 0.0;
@@ -192,16 +192,21 @@ Map<String, dynamic> callbackUnpackH(List<int> datax, devtype) {
         counterh++;
         //print("$devtype jsonData: $hipsjsonData");
       }
-    } else {
-      print('Invalid data');
-    }
+    } //else {
+    //print('Invalid data');
+    //}
   }
   if (devtype == 'hips' && Hindx >= 4) {
     //print('hips: $hipsjsonData');
     Hindx = 0;
     return hipsjsonData;
   } else {
-    return errorData; // Return an empty list if devtype is invalid
+    return {
+      "prox": hipsjdataprox, // Default to the current state of kneejdataprox
+      "dist": hipsjdatadist, // Default to the current state of kneejdatadist
+      "state": jdataStates,
+      "counter": counterh,
+    }; // Return an empty list if devtype is invalid
   }
 }
 
@@ -275,9 +280,9 @@ Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
         counterf++;
         //print("$devtype jsonData: $footjsonData");
       }
-    } else {
-      print('Invalid data');
-    }
+    } //else {
+    //print('Invalid data');
+    //}
   }
 
   if (devtype == 'foot' && Findx >= 4) {
@@ -285,7 +290,12 @@ Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
     Findx = 0;
     return footjsonData;
   } else {
-    return errorData; // Return an empty list if devtype is invalid
+    return {
+      "prox": footjdataprox, // Default to the current state of kneejdataprox
+      "dist": footjdatadist, // Default to the current state of kneejdatadist
+      "state": jdataStates,
+      "counter": counterf,
+    }; // Return an empty list if devtype is invalid
   }
 }
 
@@ -358,15 +368,20 @@ Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
         counterk++;
         //print("$devtype jsonData: $kneejsonData");
       }
-    } else {
-      print('Invalid data');
-    }
+    } //else {
+    //print('Invalid data');
+    //}
   }
 
   if (devtype == 'knee' && Kindx >= 4) {
     Kindx = 0;
     return kneejsonData;
   } else {
-    return errorData; // Return an empty list if devtype is invalid
+    return {
+      "prox": kneejdataprox, // Default to the current state of kneejdataprox
+      "dist": kneejdatadist, // Default to the current state of kneejdatadist
+      "state": jdataStates,
+      "counter": counterk,
+    }; // Return an empty list if devtype is invalid
   }
 }
