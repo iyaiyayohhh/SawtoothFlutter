@@ -1,3 +1,4 @@
+/*
 import 'dart:async';
 //import 'dart:typed_data';
 
@@ -86,7 +87,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
 
   List<Map<String, dynamic>> rawKneeData = [];
   List<Map<String, dynamic>> rawFootData = [];
-  List<Map<String, dynamic>> rawHipsData = [];
+  List<List<int>> rawHipsData = [];
 
   List<int> foot_state = [];
 
@@ -214,7 +215,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          rawHipsData.add({'data': bytes3, 'timestamp': DateTime.now()});
+          rawHipsData.add(bytes3);
           /*
           hipsjson = callbackUnpackH(bytes3, deviceType);
           //final timestamphips = DateTime.now();
@@ -289,7 +290,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         }
         */
       //removing duplicate data points
-      /*
       var meta_count_knee = 0;
       var knee_count = 0;
       var current_count_knee = 0;
@@ -365,11 +365,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           }
         }
       }
-      */
 
       // Process raw data for hips
       for (var c in rawHipsData) {
-        hipsjson = callbackUnpackHB(c['data'], 'hips');
+        hipsjson = callbackUnpackH(c, 'hips');
         //print('hips: $hipsjson');
         if (hipsjson.isNotEmpty) {
           List<double> hips_prox = hipsjson['prox'];
@@ -382,43 +381,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           }
         }
       }
-
-      for (var b in rawKneeData) {
-        kneejson = callbackUnpackK(b['data'], 'knee');
-        if (kneejson.isNotEmpty) {
-          var knee_prox = kneejson['prox'];
-          Map<String, dynamic> knee_point = {
-            'timestamp': b['timestamp'],
-            'data': knee_prox,
-          };
-          time_knee.add(knee_point);
-        }
-      }
-
-      for (var a in rawFootData) {
-        footjson = callbackUnpackF(a['data'], 'foot');
-        if (footjson.isNotEmpty) {
-          var foot_prox = footjson['prox'];
-          Map<String, dynamic> foot_point = {
-            'timestamp': a['timestamp'],
-            'data': foot_prox,
-          };
-          time_foot.add(foot_point);
-        }
-      }
-      /*
-      for (var c in rawHipsData) {
-        hipsjson = callbackUnpackH(c, 'hips');
-        if (hipsjson.isNotEmpty) {
-          var hips_prox = hipsjson['prox'];
-          Map<String, dynamic> hips_point = {
-            'timestamp': DateTime.now(),
-            'data': hips_prox,
-          };
-          time_hips.add(hips_point);
-        }
-      }
-      */
 
       // Clear the buffers after processing
       rawKneeData.clear();
@@ -452,19 +414,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             .toList();
         //print('foot: $_footdataPoints');
       }
-      if (time_hips.isNotEmpty) {
-        final firstHipsTimestamp =
-            time_hips.first['timestamp'].millisecondsSinceEpoch;
-        _hipsdataPoints = time_hips
-            .map((point) => FlSpot(
-                  (point['timestamp'].millisecondsSinceEpoch -
-                          firstHipsTimestamp)
-                      .toDouble(),
-                  point['data'],
-                ))
-            .toList();
-        print('hips: $_hipsdataPoints');
-      }
 /*
       _kneedataPoints = time_knee
           .map((point) => FlSpot(
@@ -481,7 +430,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               ))
           .toList();
 */
-/*
       _hipsdataPoints = time_hips
           .map((point) => FlSpot(
                 time_hips.indexOf(point).toDouble(),
@@ -489,7 +437,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                 point['data'],
               ))
           .toList();
-          */
     });
   }
 
@@ -670,3 +617,5 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     );
   }
 }
+
+*/

@@ -23,11 +23,11 @@ var counterk = 0;
 
 var jdataStates = [0, 0, 0, 0];
 var footjdatadist = [0.0, 0.0, 0.0, 0.0];
-var footjdataprox = [-1.0, -1.0, -1.0, -1.0];
+var footjdataprox = 0.0;
 var kneejdatadist = [0.0, 0.0, 0.0, 0.0];
-var kneejdataprox = [-1.0, -1.0, -1.0, -1.0];
+var kneejdataprox = 0.0;
 var hipsjdatadist = [0.0, 0.0, 0.0, 0.0];
-var hipsjdataprox = [-1.0, -1.0, -1.0, -1.0];
+var hipsjdataprox = 0.0;
 
 double pgyroA = 0.0;
 double paccelA = 0.0;
@@ -124,6 +124,7 @@ void incrementCounter(d) {
   }
 }
 
+/*
 Map<String, dynamic> callbackUnpackH(List<int> datax, devtype) {
   if (datax.length == 10) {
     List<int> data = [0, 0, 0, 0];
@@ -209,7 +210,49 @@ Map<String, dynamic> callbackUnpackH(List<int> datax, devtype) {
     }; // Return an empty list if devtype is invalid
   }
 }
+*/
+Map<String, dynamic> callbackUnpackHB(List<int> datax, devtype) {
+  if (datax.length == 10) {
+    List<int> data = datax;
+    pgyroA = 0.0;
+    paccelA = 0.0;
+    dgyroA = 0.0;
+    daccelA = 0.0;
 
+    Uint8List newdata = Uint8List(data.length + 1);
+    for (int i = 0; i < data.length; i++) {
+      newdata[i] = data[i];
+    }
+    newdata[data.length] = 0x00;
+
+    if (String.fromCharCode(datax[0]) == 'a') {
+      var val = data.sublist(2, 4);
+      pgyroA = unpack(val) / 10.0;
+      val = data.sublist(4, 6);
+      paccelA = 90.0 + (unpack(val) / 10.0);
+      val = data.sublist(6, 8);
+      dgyroA = unpack(val) / 10.0;
+      val = data.sublist(8, 10);
+      daccelA = 90.0 + (unpack(val) / 10.0);
+
+      // Process hips data immediately
+      if (devtype == 'hips') {
+        hipsjdataprox = pgyroA; // Update the first index
+        hipsjdatadist[0] = XComFitA(hipsjdatadist[0], dgyroA, daccelA);
+
+        hipsjsonData["counter"] = counterh;
+        hipsjsonData["state"] = jdataStates;
+        hipsjsonData["prox"] = hipsjdataprox;
+        hipsjsonData["dist"] = hipsjdatadist;
+        counterh++;
+      }
+    }
+  }
+
+  return hipsjsonData;
+}
+
+/*
 Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
   if (datax.length == 10) {
     List<int> data = [0, 0, 0, 0];
@@ -298,7 +341,49 @@ Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
     }; // Return an empty list if devtype is invalid
   }
 }
+*/
+Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
+  if (datax.length == 10) {
+    List<int> data = datax;
+    pgyroA = 0.0;
+    paccelA = 0.0;
+    dgyroA = 0.0;
+    daccelA = 0.0;
 
+    Uint8List newdata = Uint8List(data.length + 1);
+    for (int i = 0; i < data.length; i++) {
+      newdata[i] = data[i];
+    }
+    newdata[data.length] = 0x00;
+
+    if (String.fromCharCode(datax[0]) == 'a') {
+      var val = data.sublist(2, 4);
+      pgyroA = unpack(val) / 10.0;
+      val = data.sublist(4, 6);
+      paccelA = 90.0 + (unpack(val) / 10.0);
+      val = data.sublist(6, 8);
+      dgyroA = unpack(val) / 10.0;
+      val = data.sublist(8, 10);
+      daccelA = 90.0 + (unpack(val) / 10.0);
+
+      // Process foot data immediately
+      if (devtype == 'foot') {
+        footjdataprox = pgyroA; // Update the first index
+        footjdatadist[0] = XComFitA(footjdatadist[0], dgyroA, daccelA);
+
+        footjsonData["counter"] = counterf;
+        footjsonData["state"] = jdataStates;
+        footjsonData["prox"] = footjdataprox;
+        footjsonData["dist"] = footjdatadist;
+        counterf++;
+      }
+    }
+  }
+
+  return footjsonData;
+}
+
+/*
 Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
   if (datax.length == 10) {
     List<int> data = [0, 0, 0, 0];
@@ -384,4 +469,45 @@ Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
       "counter": counterk,
     }; // Return an empty list if devtype is invalid
   }
+}
+*/
+Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
+  if (datax.length == 10) {
+    List<int> data = datax;
+    pgyroA = 0.0;
+    paccelA = 0.0;
+    dgyroA = 0.0;
+    daccelA = 0.0;
+
+    Uint8List newdata = Uint8List(data.length + 1);
+    for (int i = 0; i < data.length; i++) {
+      newdata[i] = data[i];
+    }
+    newdata[data.length] = 0x00;
+
+    if (String.fromCharCode(datax[0]) == 'a') {
+      var val = data.sublist(2, 4);
+      pgyroA = unpack(val) / 10.0;
+      val = data.sublist(4, 6);
+      paccelA = 90.0 + (unpack(val) / 10.0);
+      val = data.sublist(6, 8);
+      dgyroA = unpack(val) / 10.0;
+      val = data.sublist(8, 10);
+      daccelA = 90.0 + (unpack(val) / 10.0);
+
+      // Process knee data immediately
+      if (devtype == 'knee') {
+        kneejdataprox = pgyroA; // Update the first index
+        kneejdatadist[0] = XComFitA(kneejdatadist[0], dgyroA, daccelA);
+
+        kneejsonData["counter"] = counterk;
+        kneejsonData["state"] = jdataStates;
+        kneejsonData["prox"] = kneejdataprox;
+        kneejsonData["dist"] = kneejdatadist;
+        counterk++;
+      }
+    }
+  }
+
+  return kneejsonData;
 }
