@@ -116,6 +116,9 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _connectSubKnee = _ble.connectToDevice(id: device.id).listen((update) {
         if (update.connectionState == DeviceConnectionState.connected) {
           _OnConnected(device.id, 'knee');
+        } else if (update.connectionState ==
+            DeviceConnectionState.disconnected) {
+          _foundKnee = false;
         }
       });
     } else if (device.name == 'FOOTSPP_SERVER' && !_foundFoot) {
@@ -123,6 +126,9 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _connectSubFoot = _ble.connectToDevice(id: device.id).listen((update) {
         if (update.connectionState == DeviceConnectionState.connected) {
           _OnConnected(device.id, 'foot');
+        } else if (update.connectionState ==
+            DeviceConnectionState.disconnected) {
+          _foundFoot = false;
         }
       });
     } else if (device.name == 'HIPSSPP_SERVER' && !_foundHips) {
@@ -130,6 +136,9 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _connectSubHips = _ble.connectToDevice(id: device.id).listen((update) {
         if (update.connectionState == DeviceConnectionState.connected) {
           _OnConnected(device.id, 'hips');
+        } else if (update.connectionState ==
+            DeviceConnectionState.disconnected) {
+          _foundHips = false;
         }
       });
     }
@@ -145,7 +154,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
+          if (_foundKnee & _foundFoot & _foundHips) {
+            rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
+            //print('Knee: $bytes1');
+          }
+
           /*
           
           kneejson = callbackUnpackK(bytes1, deviceType);
@@ -178,7 +191,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
-          rawFootData.add({'data': bytes2, 'timestamp': DateTime.now()});
+          if (_foundKnee & _foundFoot & _foundHips) {
+            rawFootData.add({'data': bytes2, 'timestamp': DateTime.now()});
+            //print('Foot: $bytes2');
+          }
+
           /*
           footjson = callbackUnpackF(bytes2, deviceType);
           //print(footjson);
@@ -214,7 +231,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          rawHipsData.add({'data': bytes3, 'timestamp': DateTime.now()});
+          if (_foundFoot & _foundKnee & _foundHips) {
+            rawHipsData.add({'data': bytes3, 'timestamp': DateTime.now()});
+            //print('Hips: $bytes3');
+            //print('Hips: ${bytes3.length}');
+          }
+
           /*
           hipsjson = callbackUnpackH(bytes3, deviceType);
           //final timestamphips = DateTime.now();
@@ -372,14 +394,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         hipsjson = callbackUnpackHB(c['data'], 'hips');
         //print('hips: $hipsjson');
         if (hipsjson.isNotEmpty) {
-          List<double> hips_prox = hipsjson['prox'];
-          for (var hips_val in hips_prox) {
-            Map<String, dynamic> hips_point = {
-              'timestamp': DateTime.now(),
-              'data': hips_val,
-            };
-            time_hips.add(hips_point);
-          }
+          var hips_prox = hipsjson['prox'];
+          Map<String, dynamic> hips_point = {
+            'timestamp': c['timestamp'],
+            'data': hips_prox,
+          };
+          time_hips.add(hips_point);
         }
       }
 
@@ -424,7 +444,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       rawKneeData.clear();
       rawFootData.clear();
       rawHipsData.clear();
-
+/*
       if (time_knee.isNotEmpty) {
         final firstKneeTimestamp =
             time_knee.first['timestamp'].millisecondsSinceEpoch;
@@ -465,23 +485,23 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             .toList();
         print('hips: $_hipsdataPoints');
       }
-/*
+*/
+
       _kneedataPoints = time_knee
           .map((point) => FlSpot(
-                point['timestamp'].millisecondsSinceEpoch.toDouble(),
-                //time_knee.indexOf(point).toDouble(),
+                //point['timestamp'].millisecondsSinceEpoch.toDouble(),
+                time_knee.indexOf(point).toDouble(),
                 point['data'],
               ))
           .toList();
       _footdataPoints = time_foot
           .map((point) => FlSpot(
-                point['timestamp'].millisecondsSinceEpoch.toDouble(),
-                //time_foot.indexOf(point).toDouble(),
+                //point['timestamp'].millisecondsSinceEpoch.toDouble(),
+                time_foot.indexOf(point).toDouble(),
                 point['data'],
               ))
           .toList();
-*/
-/*
+
       _hipsdataPoints = time_hips
           .map((point) => FlSpot(
                 time_hips.indexOf(point).toDouble(),
@@ -489,7 +509,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                 point['data'],
               ))
           .toList();
-          */
+      //print('hips: $_hipsdataPoints');
     });
   }
 

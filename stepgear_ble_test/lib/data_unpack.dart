@@ -238,6 +238,7 @@ Map<String, dynamic> callbackUnpackHB(List<int> datax, devtype) {
       // Process hips data immediately
       if (devtype == 'hips') {
         hipsjdataprox = pgyroA; // Update the first index
+        print(hipsjdataprox.runtimeType);
         hipsjdatadist[0] = XComFitA(hipsjdatadist[0], dgyroA, daccelA);
 
         hipsjsonData["counter"] = counterh;
