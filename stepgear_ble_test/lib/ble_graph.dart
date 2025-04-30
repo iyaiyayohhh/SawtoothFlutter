@@ -76,6 +76,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   List<Map<String, dynamic>> time_hips = [];
   List<Map<String, dynamic>> time_foot = [];
 
+  List<Map<String, dynamic>> unpack_knee = [];
+  List<Map<String, dynamic>> unpack_hips = [];
+  List<Map<String, dynamic>> unpack_foot = [];
+
   List<FlSpot> _kneedataPoints = [];
   List<FlSpot> _footdataPoints = [];
   List<FlSpot> _hipsdataPoints = [];
@@ -404,7 +408,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'prox': hips_prox,
             'dist': hips_dist,
           };
-          //time_hips.add(hips_point);
+          unpack_hips.add(hips_point);
         }
       }
 
@@ -418,7 +422,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'prox': knee_prox,
             'dist': knee_dist,
           };
-          //time_knee.add(knee_point);
+          unpack_knee.add(knee_point);
         }
       }
 
@@ -434,7 +438,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'prox': foot_prox,
             'dist': foot_dist,
           };
-          //time_foot.add(foot_point);
+          unpack_foot.add(foot_point);
         }
       }
       /*
