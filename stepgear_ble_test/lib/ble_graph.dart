@@ -88,6 +88,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   List<Map<String, dynamic>> rawFootData = [];
   List<Map<String, dynamic>> rawHipsData = [];
 
+  //stop watch utils
+  int count_knee_notifs = 0;
+
+
   List<int> foot_state = [];
 
   bool _isRunning = false;

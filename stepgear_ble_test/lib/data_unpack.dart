@@ -21,12 +21,12 @@ var counterh = 0;
 var counterf = 0;
 var counterk = 0;
 
-var jdataStates = [0, 0, 0, 0];
-var footjdatadist = [0.0, 0.0, 0.0, 0.0];
+var jdataStates = 0;
+var footjdatadist = 0.0;
 var footjdataprox = 0.0;
-var kneejdatadist = [0.0, 0.0, 0.0, 0.0];
+var kneejdatadist = 0.0;
 var kneejdataprox = 0.0;
-var hipsjdatadist = [0.0, 0.0, 0.0, 0.0];
+var hipsjdatadist = 0.0;
 var hipsjdataprox = 0.0;
 
 double pgyroA = 0.0;
@@ -226,20 +226,20 @@ Map<String, dynamic> callbackUnpackHB(List<int> datax, devtype) {
     newdata[data.length] = 0x00;
 
     if (String.fromCharCode(datax[0]) == 'a') {
-      var val = data.sublist(2, 4);
+      var val = newdata.sublist(2, 4);
       pgyroA = unpack(val) / 10.0;
-      val = data.sublist(4, 6);
+      val = newdata.sublist(4, 6);
       paccelA = 90.0 + (unpack(val) / 10.0);
-      val = data.sublist(6, 8);
+      val = newdata.sublist(6, 8);
       dgyroA = unpack(val) / 10.0;
-      val = data.sublist(8, 10);
+      val = newdata.sublist(8, 10);
       daccelA = 90.0 + (unpack(val) / 10.0);
 
       // Process hips data immediately
       if (devtype == 'hips') {
-        hipsjdataprox = pgyroA; // Update the first index
-        print(hipsjdataprox.runtimeType);
-        hipsjdatadist[0] = XComFitA(hipsjdatadist[0], dgyroA, daccelA);
+        hipsjdataprox = ComFitA(pgyroA, paccelA);
+        //print(hipsjdataprox.runtimeType);
+        //hipsjdatadist[0] = XComFitA(hipsjdatadist[0], dgyroA, daccelA);
 
         hipsjsonData["counter"] = counterh;
         hipsjsonData["state"] = jdataStates;
@@ -369,8 +369,9 @@ Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
 
       // Process foot data immediately
       if (devtype == 'foot') {
-        footjdataprox = pgyroA; // Update the first index
-        footjdatadist[0] = XComFitA(footjdatadist[0], dgyroA, daccelA);
+        footjdataprox = ComFitA(pgyroA, paccelA);
+        jdataStates = datax[1];
+        //footjdatadist[0] = XComFitA(footjdatadist[0], dgyroA, daccelA);
 
         footjsonData["counter"] = counterf;
         footjsonData["state"] = jdataStates;
@@ -498,8 +499,9 @@ Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
 
       // Process knee data immediately
       if (devtype == 'knee') {
-        kneejdataprox = pgyroA; // Update the first index
-        kneejdatadist[0] = XComFitA(kneejdatadist[0], dgyroA, daccelA);
+        kneejdataprox =
+            XComFitA(kneejdataprox, pgyroA, paccelA); // Update the first index
+        kneejdatadist = XComFitA(kneejdatadist, dgyroA, daccelA);
 
         kneejsonData["counter"] = counterk;
         kneejsonData["state"] = jdataStates;
