@@ -91,7 +91,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   //stop watch utils
   int count_knee_notifs = 0;
 
-
   List<int> foot_state = [];
 
   bool _isRunning = false;
@@ -399,11 +398,13 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         //print('hips: $hipsjson');
         if (hipsjson.isNotEmpty) {
           var hips_prox = hipsjson['prox'];
+          var hips_dist = hipsjson['dist'];
           Map<String, dynamic> hips_point = {
             'timestamp': c['timestamp'],
-            'data': hips_prox,
+            'prox': hips_prox,
+            'dist': hips_dist,
           };
-          time_hips.add(hips_point);
+          //time_hips.add(hips_point);
         }
       }
 
@@ -411,11 +412,13 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         kneejson = callbackUnpackK(b['data'], 'knee');
         if (kneejson.isNotEmpty) {
           var knee_prox = kneejson['prox'];
+          var knee_dist = kneejson['dist'];
           Map<String, dynamic> knee_point = {
             'timestamp': b['timestamp'],
-            'data': knee_prox,
+            'prox': knee_prox,
+            'dist': knee_dist,
           };
-          time_knee.add(knee_point);
+          //time_knee.add(knee_point);
         }
       }
 
@@ -423,11 +426,15 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         footjson = callbackUnpackF(a['data'], 'foot');
         if (footjson.isNotEmpty) {
           var foot_prox = footjson['prox'];
+          var foot_dist = footjson['dist'];
+          foot_state = footjson['state'];
           Map<String, dynamic> foot_point = {
             'timestamp': a['timestamp'],
-            'data': foot_prox,
+            'state': foot_state,
+            'prox': foot_prox,
+            'dist': foot_dist,
           };
-          time_foot.add(foot_point);
+          //time_foot.add(foot_point);
         }
       }
       /*
