@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stepgear_ble_test/ble_calibration.dart';
 import 'package:stepgear_ble_test/ble_graph.dart';
 
 class Intropage extends StatelessWidget {
@@ -30,6 +31,16 @@ class Intropage extends StatelessWidget {
               },
               child: const Text('Next'),
             ),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CalibrationPage(),
+                    ),
+                  );
+                },
+                child: const Text('Calibrate')),
           ],
         ),
       ),

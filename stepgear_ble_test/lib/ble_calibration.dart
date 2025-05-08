@@ -1,0 +1,368 @@
+import 'dart:async';
+//import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:stepgear_ble_test/ble_graph.dart';
+import 'package:stepgear_ble_test/data_unpack.dart';
+import 'package:collection/collection.dart';
+//import 'globals.dart' as globals;
+
+//import 'package:new_project/Callback.dart';
+//import 'package:new_project/Providers/UsernameProvider.dart';
+//import 'package:new_project/data/AngleData.dart';
+//import 'package:provider/provider.dart';
+//import 'package:simple_kalman/simple_kalman.dart';
+//import 'package:new_project/global_calib.dart' as globals_calib;
+
+class CalibrationPage extends StatelessWidget {
+  const CalibrationPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const CalibrationPageScreen();
+  }
+}
+
+class CalibrationPageScreen extends StatefulWidget {
+  const CalibrationPageScreen({super.key});
+
+  @override
+  State<CalibrationPageScreen> createState() => _CalibrationPageScreenState();
+}
+
+class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
+  final _ble = FlutterReactiveBle();
+
+  StreamSubscription<DiscoveredDevice>? _scanSub;
+  StreamSubscription<ConnectionStateUpdate>? _connectSubKnee;
+  StreamSubscription<ConnectionStateUpdate>? _connectSubFoot;
+  StreamSubscription<ConnectionStateUpdate>? _connectSubHips;
+  StreamSubscription<List<int>>? _notifySubKnee;
+  StreamSubscription<List<int>>? _notifySubFoot;
+  StreamSubscription<List<int>>? _notifySubHips;
+
+  List<double> latestKneeData = [];
+  List<double> latestFootData = [];
+  List<double> latestHipsData = [];
+
+  var _foundKnee = false;
+  var _foundFoot = false;
+  var _foundHips = false;
+
+  List<double> valKneeProx = [];
+  List<double> valKneeDist = [];
+  List<double> valFootProx = [];
+  List<double> valHipsProx = [];
+
+  var averageKneeProx = 0.0;
+  var averageKneeDist = 0.0;
+  var averageFootProx = 0.0;
+  var averageHipsProx = 0.0;
+
+  Map<String, dynamic> kneejson = {};
+  Map<String, dynamic> hipsjson = {};
+  Map<String, dynamic> footjson = {};
+
+  List<List<int>> rawKneeCalib = [];
+  List<List<int>> rawFootCalib = [];
+  List<List<int>> rawHipsCalib = [];
+
+  double kneeProxCalib = 0.0;
+  double kneeDistCalib = 0.0;
+  double footProxCalib = 0.0;
+  double hipsProxCalib = 0.0;
+
+  var _valueKnee = '';
+  var _valueFoot = '';
+  var _valueHips = '';
+
+  List<int> footState = [];
+
+  bool _isRunning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate);
+  }
+
+  @override
+  void dispose() {
+    _notifySubKnee?.cancel();
+    _notifySubFoot?.cancel();
+    _notifySubHips?.cancel();
+    _connectSubKnee?.cancel();
+    _connectSubFoot?.cancel();
+    _connectSubHips?.cancel();
+    _scanSub?.cancel();
+    super.dispose();
+  }
+
+  void _onScanUpdate(DiscoveredDevice device) {
+    if (device.name == 'KNEESPP_SERVER' && !_foundKnee) {
+      _foundKnee = true;
+      _connectSubKnee = _ble.connectToDevice(id: device.id).listen((update) {
+        if (update.connectionState == DeviceConnectionState.connected) {
+          _onConnected(device.id, 'knee');
+        } else if (update.connectionState ==
+            DeviceConnectionState.disconnected) {
+          _foundKnee = false;
+        }
+      });
+    } else if (device.name == 'FOOTSPP_SERVER' && !_foundFoot) {
+      _foundFoot = true;
+      _connectSubFoot = _ble.connectToDevice(id: device.id).listen((update) {
+        if (update.connectionState == DeviceConnectionState.connected) {
+          _onConnected(device.id, 'foot');
+        } else if (update.connectionState ==
+            DeviceConnectionState.disconnected) {
+          _foundFoot = false;
+        }
+      });
+    } else if (device.name == 'HIPSSPP_SERVER' && !_foundHips) {
+      _foundHips = true;
+      _connectSubHips = _ble.connectToDevice(id: device.id).listen((update) {
+        if (update.connectionState == DeviceConnectionState.connected) {
+          _onConnected(device.id, 'hips');
+        } else if (update.connectionState ==
+            DeviceConnectionState.disconnected) {
+          _foundHips = false;
+        }
+      });
+    }
+  }
+
+  void _onConnected(String deviceId, String deviceType) {
+    final characteristic = QualifiedCharacteristic(
+        characteristicId: Uuid.parse('0000ABF2-0000-1000-8000-00805F9B34FB'),
+        serviceId: Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB'),
+        deviceId: deviceId);
+
+    if (deviceType == 'knee') {
+      _notifySubKnee =
+          _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
+        setState(() {
+          if (_foundKnee & _foundFoot & _foundHips) {
+            rawKneeCalib.add(bytes1);
+            //print('Knee: $bytes1');
+          }
+        });
+      });
+    } else if (deviceType == 'foot') {
+      _notifySubFoot =
+          _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
+        setState(() {
+          if (_foundKnee & _foundFoot & _foundHips) {
+            rawFootCalib.add(bytes2);
+            //print('Foot: $bytes2');
+          }
+        });
+      });
+    } else if (deviceType == 'hips') {
+      _notifySubHips =
+          _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
+        setState(() {
+          if (_foundFoot & _foundKnee & _foundHips) {
+            rawHipsCalib.add(bytes3);
+            //print('Hips: $bytes3');
+            //print('Hips: ${bytes3.length}');
+          }
+        });
+      });
+    }
+  }
+
+  /*
+
+  void _gaitcyclegraph() {
+    setState(() {
+     
+    });
+  }
+  */
+  void _startGeneratingData() {
+    setState(() {
+      _isRunning = true;
+    });
+  }
+
+  void _stopGeneratingData() {
+    setState(() {
+      _isRunning = false;
+
+      // Process raw data for hips
+
+      for (var b in rawKneeCalib) {
+        kneejson = callbackUnpackK(b, 'knee');
+        if (kneejson.isNotEmpty) {
+          var kneeProx = kneejson['prox'];
+          var kneeDist = kneejson['dist'];
+          valKneeProx.add(kneeProx);
+          valKneeDist.add(kneeDist);
+        }
+      }
+      averageKneeProx = valKneeProx.average;
+      averageKneeDist = valKneeDist.average;
+      _valueKnee = (averageKneeDist - averageKneeProx).toStringAsFixed(2);
+
+      for (var a in rawFootCalib) {
+        footjson = callbackUnpackF(a, 'foot');
+        if (footjson.isNotEmpty) {
+          var footProx = footjson['prox'];
+          footState = footjson['state'];
+          valFootProx.add(footProx);
+        }
+      }
+      averageFootProx = valFootProx.average;
+      _valueFoot =
+          (((averageFootProx + 90) - averageKneeDist) - 180).toStringAsFixed(2);
+
+      for (var c in rawHipsCalib) {
+        hipsjson = callbackUnpackHB(c, 'hips');
+        //print('hips: $hipsjson');
+        if (hipsjson.isNotEmpty) {
+          var hipsProx = hipsjson['prox'];
+          valHipsProx.add(hipsProx);
+        }
+      }
+      averageHipsProx = valHipsProx.average;
+      _valueHips = (averageKneeProx - averageHipsProx).toStringAsFixed(2);
+
+      // Clear the buffers after processing
+      rawKneeCalib.clear();
+      rawFootCalib.clear();
+      rawHipsCalib.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${DateTime.now()}'),
+        //backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+            ),
+            _valueKnee.isEmpty
+                ? const CircularProgressIndicator()
+                : Text(
+                    "Knee:  $_valueKnee Prox: $averageKneeProx Dist: $averageKneeDist",
+                    style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            Text('Knee Prox Calib: $kneeProxCalib',
+                style: Theme.of(context).textTheme.titleLarge),
+            Slider(
+              value: kneeProxCalib,
+              min: -180,
+              max: 180,
+              divisions: 360,
+              label: kneeProxCalib.round().toString(),
+              onChanged: (_isRunning
+                  ? null
+                  : (value) {
+                      setState(() {
+                        kneeProxCalib = value;
+                      });
+                    }),
+            ),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            _valueFoot.isEmpty
+                ? const CircularProgressIndicator()
+                : Text(
+                    "Foot:  $_valueFoot Prox: $averageFootProx Dist: $averageKneeDist",
+                    style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            Text('Foot Prox Calib: $footProxCalib',
+                style: Theme.of(context).textTheme.titleLarge),
+            Slider(
+              value: footProxCalib,
+              min: -180,
+              max: 180,
+              divisions: 360,
+              label: footProxCalib.round().toString(),
+              onChanged: (_isRunning
+                  ? null
+                  : (value) {
+                      setState(() {
+                        footProxCalib = value;
+                      });
+                    }),
+            ),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            _valueHips.isEmpty
+                ? const CircularProgressIndicator()
+                : Text(
+                    "Hips:  $_valueHips Prox: $averageHipsProx Dist: $averageKneeProx",
+                    style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            Text('Hips Prox Calib: $hipsProxCalib',
+                style: Theme.of(context).textTheme.titleLarge),
+            Slider(
+              value: hipsProxCalib,
+              min: -180,
+              max: 180,
+              divisions: 360,
+              label: hipsProxCalib.round().toString(),
+              onChanged: (_isRunning
+                  ? null
+                  : (value) {
+                      setState(() {
+                        hipsProxCalib = value;
+                      });
+                    }),
+            ),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const GaitGraph()));
+                },
+                child: const Text('Save')),
+          ],
+        ),
+      ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _isRunning ? null : _startGeneratingData,
+            child: const Text('Start'),
+          ),
+          const SizedBox(width: 20),
+          FloatingActionButton(
+            onPressed: _isRunning ? _stopGeneratingData : null,
+            child: const Text('Stop'),
+          ),
+          const SizedBox(width: 20),
+        ],
+      ),
+    );
+  }
+}
