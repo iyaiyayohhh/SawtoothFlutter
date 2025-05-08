@@ -5,6 +5,34 @@ double maxFoot = 45.0;
 double minHips = -30.0;
 double maxHips = 60.0;
 
+double kneeProxraw(double proxValuesKnee) {
+  if (proxValuesKnee > 180.0) {
+    proxValuesKnee = proxValuesKnee - 360;
+  }
+  return proxValuesKnee;
+}
+
+double kneeDistraw(double distValuesKnee) {
+  if (distValuesKnee > 180.0) {
+    distValuesKnee = distValuesKnee - 360;
+  }
+  return distValuesKnee;
+}
+
+double footProxraw(double proxValuesFoot) {
+  if (proxValuesFoot > 180.0) {
+    proxValuesFoot = proxValuesFoot - 360;
+  }
+  return proxValuesFoot + 90;
+}
+
+double hipsProxraw(double proxValuesHips) {
+  if (proxValuesHips > 180.0) {
+    proxValuesHips = proxValuesHips - 360;
+  }
+  return proxValuesHips;
+}
+
 double kneeangleOffset(double proxValuesKnee, double distValuesKnee) {
   //double proxValue = 0.0;
   //double distValue = 0.0;
