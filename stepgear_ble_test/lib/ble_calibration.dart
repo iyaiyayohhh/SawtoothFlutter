@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/ble_graph.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 import 'package:collection/collection.dart';
@@ -197,8 +198,8 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
         kneejson = callbackUnpackK(b, 'knee');
         //print('kneejson: $kneejson');
         if (kneejson.isNotEmpty) {
-          var kneeProx = kneejson['prox'];
-          var kneeDist = kneejson['dist'];
+          var kneeProx = kneeProxraw(kneejson['prox']);
+          var kneeDist = kneeDistraw(kneejson['dist']);
           valKneeProx.add(kneeProx);
           valKneeDist.add(kneeDist);
         }
@@ -213,7 +214,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
         footjson = callbackUnpackF(a, 'foot');
         print('footjson: $footjson');
         if (footjson.isNotEmpty) {
-          var footProx = footjson['prox'];
+          var footProx = footProxraw(footjson['prox']);
           var footStateValue = footjson['state'];
           valFootProx.add(footProx);
           footState.add(footStateValue);
@@ -227,7 +228,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
         hipsjson = callbackUnpackHB(c, 'hips');
         //print('hips: $hipsjson');
         if (hipsjson.isNotEmpty) {
-          var hipsProx = hipsjson['prox'];
+          var hipsProx = hipsProxraw(hipsjson['prox']);
           valHipsProx.add(hipsProx);
         }
       }
