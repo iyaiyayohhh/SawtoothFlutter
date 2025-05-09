@@ -195,6 +195,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
 
       for (var b in rawKneeCalib) {
         kneejson = callbackUnpackK(b, 'knee');
+        //print('kneejson: $kneejson');
         if (kneejson.isNotEmpty) {
           var kneeProx = kneejson['prox'];
           var kneeDist = kneejson['dist'];
@@ -202,16 +203,20 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
           valKneeDist.add(kneeDist);
         }
       }
+      //print(valKneeProx);
       averageKneeProx = valKneeProx.average;
       averageKneeDist = valKneeDist.average;
       _valueKnee = (averageKneeDist - averageKneeProx).toStringAsFixed(2);
+      //print('Knee: $_valueKnee Prox: $averageKneeProx Dist: $averageKneeDist');
 
       for (var a in rawFootCalib) {
         footjson = callbackUnpackF(a, 'foot');
+        print('footjson: $footjson');
         if (footjson.isNotEmpty) {
           var footProx = footjson['prox'];
-          footState = footjson['state'];
+          var footStateValue = footjson['state'];
           valFootProx.add(footProx);
+          footState.add(footStateValue);
         }
       }
       averageFootProx = valFootProx.average;
@@ -263,9 +268,9 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 style: Theme.of(context).textTheme.titleLarge),
             Slider(
               value: kneeProxCalib,
-              min: -180,
-              max: 180,
-              divisions: 360,
+              min: -20,
+              max: 20,
+              divisions: 80,
               label: kneeProxCalib.round().toString(),
               onChanged: (_isRunning
                   ? null
@@ -292,9 +297,9 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 style: Theme.of(context).textTheme.titleLarge),
             Slider(
               value: footProxCalib,
-              min: -180,
-              max: 180,
-              divisions: 360,
+              min: -20,
+              max: 20,
+              divisions: 80,
               label: footProxCalib.round().toString(),
               onChanged: (_isRunning
                   ? null
@@ -321,9 +326,9 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 style: Theme.of(context).textTheme.titleLarge),
             Slider(
               value: hipsProxCalib,
-              min: -180,
-              max: 180,
-              divisions: 360,
+              min: -20,
+              max: 20,
+              divisions: 80,
               label: hipsProxCalib.round().toString(),
               onChanged: (_isRunning
                   ? null
@@ -337,14 +342,14 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               height: 20,
               width: 20,
             ),
+            /*
             ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const GaitGraph()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => GaitGraph()));
                 },
                 child: const Text('Save')),
+                */
           ],
         ),
       ),
