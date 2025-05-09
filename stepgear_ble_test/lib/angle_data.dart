@@ -23,7 +23,8 @@ double footProxraw(double proxValuesFoot) {
   if (proxValuesFoot > 180.0) {
     proxValuesFoot = proxValuesFoot - 360;
   }
-  return proxValuesFoot + 90;
+  //15 degrees offset for foot angle elevation
+  return proxValuesFoot - 15;
 }
 
 double hipsProxraw(double proxValuesHips) {
