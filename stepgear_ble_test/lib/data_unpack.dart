@@ -358,13 +358,13 @@ Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
     newdata[data.length] = 0x00;
 
     if (String.fromCharCode(datax[0]) == 'a') {
-      var val = data.sublist(2, 4);
+      var val = newdata.sublist(2, 4);
       pgyroA = unpack(val) / 10.0;
-      val = data.sublist(4, 6);
+      val = newdata.sublist(4, 6);
       paccelA = 90.0 + (unpack(val) / 10.0);
-      val = data.sublist(6, 8);
+      val = newdata.sublist(6, 8);
       dgyroA = unpack(val) / 10.0;
-      val = data.sublist(8, 10);
+      val = newdata.sublist(8, 10);
       daccelA = 90.0 + (unpack(val) / 10.0);
 
       // Process foot data immediately
@@ -488,13 +488,13 @@ Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
     newdata[data.length] = 0x00;
 
     if (String.fromCharCode(datax[0]) == 'a') {
-      var val = data.sublist(2, 4);
+      var val = newdata.sublist(2, 4);
       pgyroA = unpack(val) / 10.0;
-      val = data.sublist(4, 6);
+      val = newdata.sublist(4, 6);
       paccelA = 90.0 + (unpack(val) / 10.0);
-      val = data.sublist(6, 8);
+      val = newdata.sublist(6, 8);
       dgyroA = unpack(val) / 10.0;
-      val = data.sublist(8, 10);
+      val = newdata.sublist(8, 10);
       daccelA = 90.0 + (unpack(val) / 10.0);
 
       // Process knee data immediately
