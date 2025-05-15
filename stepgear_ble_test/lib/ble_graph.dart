@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'globals.dart' as globals;
 
@@ -15,16 +16,43 @@ import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'package:new_project/global_calib.dart' as globals_calib;
 
 class GaitGraph extends StatelessWidget {
-  const GaitGraph({super.key});
+  final double kneeProxCalib;
+  final double kneeDistCalib;
+  final double footProxCalib;
+  final double hipsProxCalib;
+
+  const GaitGraph({
+    Key? key,
+    required this.kneeProxCalib,
+    required this.kneeDistCalib,
+    required this.footProxCalib,
+    required this.hipsProxCalib,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const GaitGraphScreen();
+    return GaitGraphScreen(
+      kneeProxCalib: kneeProxCalib,
+      kneeDistCalib: kneeDistCalib,
+      footProxCalib: footProxCalib,
+      hipsProxCalib: hipsProxCalib,
+    );
   }
 }
 
 class GaitGraphScreen extends StatefulWidget {
-  const GaitGraphScreen({super.key});
+  final double kneeProxCalib;
+  final double kneeDistCalib;
+  final double footProxCalib;
+  final double hipsProxCalib;
+
+  const GaitGraphScreen({
+    Key? key,
+    required this.kneeProxCalib,
+    required this.kneeDistCalib,
+    required this.footProxCalib,
+    required this.hipsProxCalib,
+  }) : super(key: key);
 
   @override
   State<GaitGraphScreen> createState() => _GaitGraphScreenState();
@@ -398,7 +426,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         hipsjson = callbackUnpackHB(c['data'], 'hips');
         //print('hips: $hipsjson');
         if (hipsjson.isNotEmpty) {
-          var hipsProx = hipsjson['prox'];
+          var hipsProx = hipsProxraw(hipsjson['prox']) - widget.hipsProxCalib;
           var hipsDist = hipsjson['dist'];
           Map<String, dynamic> hipsPoint = {
             'timestamp': c['timestamp'],
@@ -412,8 +440,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       for (var b in rawKneeData) {
         kneejson = callbackUnpackK(b['data'], 'knee');
         if (kneejson.isNotEmpty) {
-          var kneeProx = kneejson['prox'];
-          var kneeDist = kneejson['dist'];
+          var kneeProx = kneeProxraw(kneejson['prox']) - widget.kneeProxCalib;
+          var kneeDist = kneeDistraw(kneejson['dist']) - widget.kneeDistCalib;
+          //var kneeDist = kneejson['dist'];
+          //var kneeProx = kneejson['prox'];
+
           Map<String, dynamic> kneePoint = {
             'timestamp': b['timestamp'],
             'prox': kneeProx,
@@ -426,7 +457,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       for (var a in rawFootData) {
         footjson = callbackUnpackF(a['data'], 'foot');
         if (footjson.isNotEmpty) {
-          var footProx = footjson['prox'];
+          var footProx = footProxraw(footjson['prox']) - widget.footProxCalib;
           var footDist = footjson['dist'];
           footState = footjson['state'];
           Map<String, dynamic> footPoint = {
@@ -456,6 +487,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       rawKneeData.clear();
       rawFootData.clear();
       rawHipsData.clear();
+
+      
 /*
       if (_timeKnee.isNotEmpty) {
         final firstKneeTimestamp =
@@ -498,6 +531,9 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         print('hips: $_hipsdataPoints');
       }
 */
+
+// heelstrike detection
+      //int heelstrikeIndex = possibleHeelstrike(footState, _listFootTime);
 
       _kneedataPoints = _timeKnee
           .map((point) => FlSpot(

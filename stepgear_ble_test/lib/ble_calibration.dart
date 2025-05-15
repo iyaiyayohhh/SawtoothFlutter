@@ -343,6 +343,21 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               height: 20,
               width: 20,
             ),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GaitGraph(
+                                kneeProxCalib: kneeProxCalib,
+                                footProxCalib: footProxCalib,
+                                hipsProxCalib: hipsProxCalib,
+                                kneeDistCalib: kneeDistCalib,
+                              )));
+                },
+                child: const Text('Gait Graph')),
+
+
             /*
             ElevatedButton(
                 onPressed: () {
