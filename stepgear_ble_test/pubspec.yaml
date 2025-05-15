@@ -39,6 +39,8 @@ dependencies:
   fl_chart: ^0.68.0
   collection: ^1.18.0
   to_csv: ^2.2.1
+  scidart: ^0.0.2-dev.12
+  equations: ^5.0.2
 
 dev_dependencies:
   flutter_test:
