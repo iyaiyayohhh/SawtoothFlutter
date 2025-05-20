@@ -186,7 +186,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          if (_isRunning & _foundKnee & _foundFoot & _foundHips) {
             rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
             //print('Knee: $bytes1');
           }
@@ -223,7 +223,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          if (_isRunning & _foundKnee & _foundFoot & _foundHips) {
             rawFootData.add({
               'data': bytes2,
               'timestamp': DateTime.now(),
@@ -267,7 +267,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          if (_foundFoot & _foundKnee & _foundHips) {
+          if (_isRunning & _foundFoot & _foundKnee & _foundHips) {
             rawHipsData.add({
               'data': bytes3,
               'timestamp': DateTime.now(),
