@@ -343,6 +343,19 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               height: 20,
               width: 20,
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _isRunning ? null : _startGeneratingData,
+                  child: const Text('Start'),
+                ),
+                ElevatedButton(
+                  onPressed: _isRunning ? _stopGeneratingData : null,
+                  child: const Text('Stop'),
+                ),
+              ],
+            ),
             ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -357,7 +370,6 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 },
                 child: const Text('Gait Graph')),
 
-
             /*
             ElevatedButton(
                 onPressed: () {
@@ -368,21 +380,6 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 */
           ],
         ),
-      ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: _isRunning ? null : _startGeneratingData,
-            child: const Text('Start'),
-          ),
-          const SizedBox(width: 20),
-          FloatingActionButton(
-            onPressed: _isRunning ? _stopGeneratingData : null,
-            child: const Text('Stop'),
-          ),
-          const SizedBox(width: 20),
-        ],
       ),
     );
   }

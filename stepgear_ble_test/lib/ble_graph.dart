@@ -483,6 +483,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'dist': footDist,
             'angle': ((footProx + 90) - footDist) - 180,
           };
+          print('foot: $footProx');
           _unpackFoot.add(footPoint);
         }
       }
@@ -740,13 +741,15 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            heroTag: 'start1',
             onPressed: _isRunning ? null : _startGeneratingData,
-            child: Text('Start'),
+            child: const Text('Start'),
           ),
           const SizedBox(width: 20),
           FloatingActionButton(
+            heroTag: 'stop1',
             onPressed: _isRunning ? _stopGeneratingData : null,
-            child: Text('Stop'),
+            child: const Text('Stop'),
           ),
           const SizedBox(width: 20),
         ],
