@@ -124,6 +124,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
 
   bool _isRunning = false;
 
+  List<List<String>> kneelistOfLists = [];
+  List<List<String>> footlistOfLists = [];
+  List<List<String>> hipslistOfLists = [];
+
   List<String> data1 = [];
   List<String> data2 = [];
   List<String> data3 = [];
@@ -507,6 +511,14 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': ((footProx + 90) - footDist) - 180,
           };
           _unpackFoot.add(footPoint);
+          data1 = [
+            footPoint['timestamp'].toString(),
+            footPoint['state'].toString(),
+            footPoint['prox'].toString(),
+            footPoint['dist'].toString(),
+            footPoint['angle'].toString(),
+          ];
+          footlistOfLists.add(data1);
         }
       }
       /*
