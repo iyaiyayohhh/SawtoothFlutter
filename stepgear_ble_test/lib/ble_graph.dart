@@ -124,6 +124,29 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
 
   bool _isRunning = false;
 
+  List<String> data1 = [];
+  List<String> data2 = [];
+  List<String> data3 = [];
+  List<String> data4 = [];
+
+  List<String> header = [
+    'knee time',
+    'state',
+    'prox',
+    'dist',
+    'computed angle',
+    'foot time',
+    'state',
+    'prox',
+    'dist',
+    'computed angle',
+    'hips time',
+    'state',
+    'prox',
+    'dist',
+    'computed angle'
+  ];
+
   @override
   void initState() {
     super.initState();
