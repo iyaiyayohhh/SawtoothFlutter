@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stepgear_ble_test/ble_calibration.dart';
-//import 'package:stepgear_ble_test/ble_graph.dart';
+//import 'package:stepgear_ble_test/ble_calibration.dart';
+import 'package:stepgear_ble_test/ble_graph.dart';
 
 class Intropage extends StatelessWidget {
   const Intropage({super.key});
@@ -20,7 +20,6 @@ class Intropage extends StatelessWidget {
               style: TextStyle(fontSize: 24),
             ),
             const SizedBox(height: 20),
-            /*
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -32,7 +31,7 @@ class Intropage extends StatelessWidget {
               },
               child: const Text('Next'),
             ),
-            */
+            /*
             ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -43,6 +42,7 @@ class Intropage extends StatelessWidget {
                   );
                 },
                 child: const Text('Calibrate')),
+                */
           ],
         ),
       ),
