@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:stepgear_ble_test/ble_calibration.dart';
 //import 'package:stepgear_ble_test/ble_graph.dart';
 
 class Intropage extends StatelessWidget {
-  const Intropage({super.key});
+  final FlutterReactiveBle ble;
+  const Intropage({Key? key, required this.ble}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class Intropage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CalibrationPage(),
+                      builder: (context) => CalibrationPage(ble: ble),
                     ),
                   );
                 },

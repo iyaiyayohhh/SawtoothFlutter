@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/ble_graph.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
@@ -17,23 +18,25 @@ import 'package:collection/collection.dart';
 //import 'package:new_project/global_calib.dart' as globals_calib;
 
 class CalibrationPage extends StatelessWidget {
-  const CalibrationPage({super.key});
+  final FlutterReactiveBle ble;
+  const CalibrationPage({super.key, required this.ble});
 
   @override
   Widget build(BuildContext context) {
-    return const CalibrationPageScreen();
+    return CalibrationPageScreen(ble: ble);
   }
 }
 
 class CalibrationPageScreen extends StatefulWidget {
-  const CalibrationPageScreen({super.key});
+  final FlutterReactiveBle ble;
+  const CalibrationPageScreen({super.key, required this.ble});
 
   @override
   State<CalibrationPageScreen> createState() => _CalibrationPageScreenState();
 }
 
 class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
-  final _ble = FlutterReactiveBle();
+  late final FlutterReactiveBle _ble;
 
   StreamSubscription<DiscoveredDevice>? _scanSub;
   StreamSubscription<ConnectionStateUpdate>? _connectSubKnee;
@@ -42,6 +45,10 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   StreamSubscription<List<int>>? _notifySubKnee;
   StreamSubscription<List<int>>? _notifySubFoot;
   StreamSubscription<List<int>>? _notifySubHips;
+
+  String? kneeDeviceId;
+  String? footDeviceId;
+  String? hipsDeviceId;
 
   List<double> latestKneeData = [];
   List<double> latestFootData = [];
@@ -85,19 +92,32 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   @override
   void initState() {
     super.initState();
-    _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate);
+    _ble = widget.ble;
+    requestPermissions().then((_) {
+      _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate,
+          onError: (e) {
+        print('Scan Error $e');
+      });
+    });
   }
 
   @override
   void dispose() {
-    _notifySubKnee?.cancel();
-    _notifySubFoot?.cancel();
-    _notifySubHips?.cancel();
-    _connectSubKnee?.cancel();
-    _connectSubFoot?.cancel();
-    _connectSubHips?.cancel();
+    //maintain connections to next page
+    //_notifySubKnee?.cancel();
+    //_notifySubFoot?.cancel();
+    //_notifySubHips?.cancel();
+    //_connectSubKnee?.cancel();
+    //_connectSubFoot?.cancel();
+    //_connectSubHips?.cancel();
     _scanSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> requestPermissions() async {
+    await Permission.bluetoothScan.request();
+    await Permission.bluetoothConnect.request();
+    await Permission.locationWhenInUse.request();
   }
 
   void _onScanUpdate(DiscoveredDevice device) {
@@ -106,6 +126,8 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       _connectSubKnee = _ble.connectToDevice(id: device.id).listen((update) {
         if (update.connectionState == DeviceConnectionState.connected) {
           _onConnected(device.id, 'knee');
+          kneeDeviceId = device.id;
+          //store device id for next page
         } else if (update.connectionState ==
             DeviceConnectionState.disconnected) {
           _foundKnee = false;
@@ -116,6 +138,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       _connectSubFoot = _ble.connectToDevice(id: device.id).listen((update) {
         if (update.connectionState == DeviceConnectionState.connected) {
           _onConnected(device.id, 'foot');
+          footDeviceId = device.id;
         } else if (update.connectionState ==
             DeviceConnectionState.disconnected) {
           _foundFoot = false;
@@ -126,6 +149,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       _connectSubHips = _ble.connectToDevice(id: device.id).listen((update) {
         if (update.connectionState == DeviceConnectionState.connected) {
           _onConnected(device.id, 'hips');
+          hipsDeviceId = device.id;
         } else if (update.connectionState ==
             DeviceConnectionState.disconnected) {
           _foundHips = false;
@@ -212,7 +236,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
 
       for (var a in rawFootCalib) {
         footjson = callbackUnpackF(a, 'foot');
-        print('footjson: $footjson');
+        //print('footjson: $footjson');
         if (footjson.isNotEmpty) {
           var footProx = footProxraw(footjson['prox']);
           var footStateValue = footjson['state'];
@@ -362,6 +386,10 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => GaitGraph(
+                                ble: widget.ble,
+                                kneeDeviceId: kneeDeviceId!,
+                                footDeviceId: footDeviceId!,
+                                hipsDeviceId: hipsDeviceId!,
                                 kneeProxCalib: kneeProxCalib,
                                 footProxCalib: footProxCalib,
                                 hipsProxCalib: hipsProxCalib,

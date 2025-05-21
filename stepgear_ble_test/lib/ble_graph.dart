@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:scidart/numdart.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'globals.dart' as globals;
@@ -16,6 +18,10 @@ import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'package:new_project/global_calib.dart' as globals_calib;
 
 class GaitGraph extends StatelessWidget {
+  final FlutterReactiveBle ble;
+  final String kneeDeviceId;
+  final String footDeviceId;
+  final String hipsDeviceId;
   final double kneeProxCalib;
   final double kneeDistCalib;
   final double footProxCalib;
@@ -23,6 +29,10 @@ class GaitGraph extends StatelessWidget {
 
   const GaitGraph({
     Key? key,
+    required this.ble,
+    required this.kneeDeviceId,
+    required this.footDeviceId,
+    required this.hipsDeviceId,
     required this.kneeProxCalib,
     required this.kneeDistCalib,
     required this.footProxCalib,
@@ -32,6 +42,10 @@ class GaitGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GaitGraphScreen(
+      ble: ble,
+      kneeDeviceId: kneeDeviceId,
+      footDeviceId: footDeviceId,
+      hipsDeviceId: hipsDeviceId,
       kneeProxCalib: kneeProxCalib,
       kneeDistCalib: kneeDistCalib,
       footProxCalib: footProxCalib,
@@ -41,6 +55,10 @@ class GaitGraph extends StatelessWidget {
 }
 
 class GaitGraphScreen extends StatefulWidget {
+  final FlutterReactiveBle ble;
+  final String kneeDeviceId;
+  final String footDeviceId;
+  final String hipsDeviceId;
   final double kneeProxCalib;
   final double kneeDistCalib;
   final double footProxCalib;
@@ -48,6 +66,10 @@ class GaitGraphScreen extends StatefulWidget {
 
   const GaitGraphScreen({
     Key? key,
+    required this.ble,
+    required this.kneeDeviceId,
+    required this.footDeviceId,
+    required this.hipsDeviceId,
     required this.kneeProxCalib,
     required this.kneeDistCalib,
     required this.footProxCalib,
@@ -59,7 +81,7 @@ class GaitGraphScreen extends StatefulWidget {
 }
 
 class _GaitGraphScreenState extends State<GaitGraphScreen> {
-  final _ble = FlutterReactiveBle();
+  late final FlutterReactiveBle _ble;
 
   StreamSubscription<DiscoveredDevice>? _scanSub;
   StreamSubscription<ConnectionStateUpdate>? _connectSubKnee;
@@ -120,6 +142,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   List<Map<String, dynamic>> rawFootData = [];
   List<Map<String, dynamic>> rawHipsData = [];
 
+  List<int> kneeData = [];
+
   List<int> footState = [];
 
   bool _isRunning = false;
@@ -127,7 +151,19 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   @override
   void initState() {
     super.initState();
-    _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate);
+    _ble = widget.ble;
+    /*
+    requestPermissions().then((_) {
+      _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate,
+          onError: (e) {
+        print('Scan Error $e');
+      });
+    });
+    */
+
+    _onConnected(widget.kneeDeviceId, 'knee');
+    _onConnected(widget.footDeviceId, 'foot');
+    _onConnected(widget.hipsDeviceId, 'hips');
   }
 
   @override
@@ -140,6 +176,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     _connectSubHips?.cancel();
     _scanSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> requestPermissions() async {
+    await Permission.bluetoothScan.request();
+    await Permission.bluetoothConnect.request();
+    await Permission.locationWhenInUse.request();
   }
 
   void _onScanUpdate(DiscoveredDevice device) {
@@ -186,8 +228,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
+          _foundKnee = true;
           if (_isRunning & _foundKnee & _foundFoot & _foundHips) {
+            kneeData = bytes1;
             rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
+            //print(rawKneeData.last);
             //print('Knee: $bytes1');
           }
 
@@ -223,13 +268,15 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
+          _foundFoot = true;
           if (_isRunning & _foundKnee & _foundFoot & _foundHips) {
             rawFootData.add({
               'data': bytes2,
               'timestamp': DateTime.now(),
-              'knee': rawKneeData.isNotEmpty ? rawKneeData.last : null,
+              'knee': kneeData,
             });
             //print('Foot: $bytes2');
+            //print(rawFootData.last);
           }
 
           /*
@@ -267,12 +314,14 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
+          _foundHips = true;
           if (_isRunning & _foundFoot & _foundKnee & _foundHips) {
             rawHipsData.add({
               'data': bytes3,
               'timestamp': DateTime.now(),
-              'knee': rawKneeData.isNotEmpty ? rawKneeData.last : null,
+              'knee': kneeData,
             });
+            //print(rawHipsData.last);
 
             //print('Hips: $bytes3');
             //print('Hips: ${bytes3.length}');
@@ -429,14 +478,18 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         }
       }
       */
+      //print('hello');
 
       // Process raw data for hips
       for (var c in rawHipsData) {
         hipsjson = callbackUnpackHB(c['data'], 'hips');
+        //print('hipsjson: $hipsjson');
         Map<String, dynamic> kneeHipDist = callbackUnpackK(c['knee'], 'knee');
+        //print('kneeHipDist: $kneeHipDist');
         //print('hips: $hipsjson');
         if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
           var hipsProx = hipsProxraw(hipsjson['prox']) - widget.hipsProxCalib;
+          //print('hipsProx: $hipsProx');
           //hipsprox is hips device and the distal is knee prox
           var hipsDist =
               kneeDistraw(kneeHipDist[['prox']]) - widget.kneeProxCalib;
@@ -447,6 +500,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': hipsProx - hipsDist,
           };
           _unpackHips.add(hipsPoint);
+          print('hips: $hipsPoint');
         }
       }
 
@@ -465,6 +519,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': kneeDist - kneeProx,
           };
           _unpackKnee.add(kneePoint);
+          print('knee: $kneePoint');
         }
       }
 
@@ -483,8 +538,9 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'dist': footDist,
             'angle': ((footProx + 90) - footDist) - 180,
           };
-          print('foot: $footProx');
+          //print('foot: $footProx');
           _unpackFoot.add(footPoint);
+          print('foot: $footPoint');
         }
       }
       /*
@@ -555,21 +611,21 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _kneedataPoints = _unpackKnee
           .map((point) => FlSpot(
                 //point['timestamp'].millisecondsSinceEpoch.toDouble(),
-                _unpackKnee.indexOf(point).toDouble() / 50,
+                _unpackKnee.indexOf(point).toDouble(),
                 point['angle'],
               ))
           .toList();
       _footdataPoints = _unpackFoot
           .map((point) => FlSpot(
                 //point['timestamp'].millisecondsSinceEpoch.toDouble(),
-                _unpackFoot.indexOf(point).toDouble() / 50,
+                _unpackFoot.indexOf(point).toDouble(),
                 point['angle'],
               ))
           .toList();
 
       _hipsdataPoints = _unpackHips
           .map((point) => FlSpot(
-                _unpackHips.indexOf(point).toDouble() / 50,
+                _unpackHips.indexOf(point).toDouble(),
                 //point['timestamp'].millisecondsSinceEpoch.toDouble(),
                 point['angle'],
               ))
