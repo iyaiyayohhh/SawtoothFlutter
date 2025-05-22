@@ -7,6 +7,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:scidart/numdart.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
+import 'package:to_csv/to_csv.dart' as exportCSV;
 //import 'globals.dart' as globals;
 
 //import 'package:new_project/Callback.dart';
@@ -558,6 +559,13 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
         print('hips: $_hipsdataPoints');
       }
 */
+      for (var j = 0; j < kneelistOfLists.length - 1; j++) {
+        data4 = kneelistOfLists[j] + footlistOfLists[j] + hipslistOfLists[j];
+        listOfLists.add(data4);
+      }
+      ;
+      //print(listOfLists);
+      exportCSV.myCSV(header, listOfLists);
 
       _kneedataPoints = timeKnee
           .map((point) => FlSpot(
