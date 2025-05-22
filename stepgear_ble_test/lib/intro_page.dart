@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:stepgear_ble_test/ble_calibration.dart';
+import 'package:stepgear_ble_test/ble_csv.dart';
+//import 'package:stepgear_ble_test/ble_calibration.dart';
+import 'package:stepgear_ble_test/ble_graph.dart';
 //import 'package:stepgear_ble_test/ble_graph.dart';
 
 class Intropage extends StatelessWidget {
@@ -38,11 +40,11 @@ class Intropage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CalibrationPage(),
+                      builder: (context) => const GaitCSV(),
                     ),
                   );
                 },
-                child: const Text('Calibrate')),
+                child: const Text('SAVE CSV')),
           ],
         ),
       ),
