@@ -168,11 +168,18 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     }
   }
 
-  void _onConnected(String deviceId, String deviceType) {
+  Future<void> _onConnected(String deviceId, String deviceType) async {
     final characteristic = QualifiedCharacteristic(
         characteristicId: Uuid.parse('0000ABF2-0000-1000-8000-00805F9B34FB'),
         serviceId: Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB'),
         deviceId: deviceId);
+
+    try {
+      final mtu = await _ble.requestMtu(deviceId: deviceId, mtu: 23);
+      print('MTU negotiated: $mtu');
+    } catch (e) {
+      print('Failed to negotiate MTU: $e');
+    }
 
     if (deviceType == 'knee') {
       _notifySubKnee =
@@ -221,17 +228,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
           footData = bytes2;
-          if (_isRunning &
-              kneeData.isNotEmpty &
-              footData.isNotEmpty &
-              hipsData.isNotEmpty) {
-            rawFootData.add({
-              'data': bytes2,
-              'timestamp': DateTime.now(),
-              'knee': kneeData,
-            });
-            //print('Foot: $bytes2');
-          }
+          rawFootData.add({
+            'data': bytes2,
+            'timestamp': DateTime.now(),
+            //'knee': kneeData,
+          });
+          //print('Foot: $bytes2');
 
           /*
           footjson = callbackUnpackF(bytes2, deviceType);
@@ -269,19 +271,14 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
           hipsData = bytes3;
-          if (_isRunning &
-              kneeData.isNotEmpty &
-              footData.isNotEmpty &
-              hipsData.isNotEmpty) {
-            rawHipsData.add({
-              'data': bytes3,
-              'timestamp': DateTime.now(),
-              'knee': kneeData,
-            });
+          rawHipsData.add({
+            'data': bytes3,
+            'timestamp': DateTime.now(),
+            //'knee': kneeData,
+          });
 
-            //print('Hips: $bytes3');
-            //print('Hips: ${bytes3.length}');
-          }
+          //print('Hips: $bytes3');
+          //print('Hips: ${bytes3.length}');
 
           /*
           hipsjson = callbackUnpackH(bytes3, deviceType);
@@ -438,6 +435,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         }
       }
       */
+      /*
 
       // Process raw data for hips
       for (var c in rawHipsData) {
@@ -460,6 +458,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           //print('hips: $hipsPoint');
         }
       }
+      */
 
       for (var b in rawKneeData) {
         kneejson = callbackUnpackK(b['data'], 'knee');
@@ -479,6 +478,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           //print('knee: $kneePoint');
         }
       }
+
+      /*
 
       for (var a in rawFootData) {
         footjson = callbackUnpackF(a['data'], 'foot');
@@ -500,6 +501,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           _unpackFoot.add(footPoint);
         }
       }
+      */
       /*
       for (var c in rawHipsData) {
         hipsjson = callbackUnpackH(c, 'hips');
@@ -672,6 +674,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               height: 20,
               width: 20,
             ),
+            /*
             Container(
               width: MediaQuery.of(context).size.width * 0.8,
               child: AspectRatio(
@@ -750,6 +753,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               height: 100,
               width: 20,
             ),
+            */
           ],
         ),
       ),
