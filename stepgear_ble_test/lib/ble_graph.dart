@@ -97,7 +97,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   List<Map<String, dynamic>> rawFootData = [];
   List<Map<String, dynamic>> rawHipsData = [];
 
-  List<int> footState = [];
+  List<int> footStateList = [];
+  int footState = 0;
 
   bool _isRunning = false;
 
@@ -107,7 +108,6 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     requestPermissions().then((_) {
       _scanSub = _ble.scanForDevices(
         withServices: [Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB')],
-        scanMode: ScanMode.balanced,
       ).listen((device) {
         _onScanUpdate(device);
       }, onError: (error) {
@@ -333,9 +333,9 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     setState(() {
       _isRunning = false;
       //print('stop generating data');
-      print(rawKneeData.length);
-      print(rawFootData.length);
-      print(rawHipsData.length);
+      //print(rawKneeData.length);
+      //print(rawFootData.length);
+      //print(rawHipsData.length);
       //_gaitcyclegraph();
       //final first_foot = _timeFoot[0];
       //final first_knee = _timeKnee[0];
@@ -441,23 +441,23 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
 
       // Process raw data for hips
       for (var c in rawHipsData) {
-        print(c);
         hipsjson = callbackUnpackHB(c['data'], 'hips');
         Map<String, dynamic> kneeHipDist = callbackUnpackK(c['knee'], 'knee');
         //print('hips: $hipsjson');
         //print('knee hip dist: $kneeHipDist');
-        if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
+        if (hipsjson.isNotEmpty /*&& kneeHipDist.isNotEmpty */) {
           var hipsProx = hipsProxraw(hipsjson['prox']);
           //hipsprox is hips device and the distal is knee prox
-          var hipsDist = kneeDistraw(kneeHipDist[['prox']]);
+          var hipsDist = kneeDistraw(kneeHipDist['prox']);
           Map<String, dynamic> hipsPoint = {
             'timestamp': c['timestamp'],
             'prox': hipsProx,
             'dist': hipsDist,
+            //'dist': 0.0,
             'angle': hipsProx - hipsDist,
           };
           _unpackHips.add(hipsPoint);
-          print('hips: $hipsPoint');
+          //print('hips: $hipsPoint');
         }
       }
 
@@ -476,7 +476,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': kneeDist - kneeProx,
           };
           _unpackKnee.add(kneePoint);
-          print('knee: $kneePoint');
+          //print('knee: $kneePoint');
         }
       }
 
@@ -487,14 +487,16 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           var footProx = footProxraw(footjson['prox']);
           var footDist = kneeDistraw(footKneeDist['dist']);
           footState = footjson['state'];
+          footStateList.add(footjson['state']);
           Map<String, dynamic> footPoint = {
             'timestamp': a['timestamp'],
             'state': footState,
             'prox': footProx,
             'dist': footDist,
+            //'dist': 0.0,
             'angle': ((footProx + 90) - footDist) - 180,
           };
-          print('foot: $footPoint');
+          //print('foot: $footPoint');
           _unpackFoot.add(footPoint);
         }
       }
