@@ -226,6 +226,7 @@ Map<String, dynamic> callbackUnpackHB(List<int> datax, devtype) {
     newdata[data.length] = 0x00;
 
     if (String.fromCharCode(datax[0]) == 'a') {
+      //print('hips unpack');
       var val = newdata.sublist(2, 4);
       pgyroA = unpack(val) / 10.0;
       val = newdata.sublist(4, 6);
@@ -358,6 +359,7 @@ Map<String, dynamic> callbackUnpackF(List<int> datax, devtype) {
     newdata[data.length] = 0x00;
 
     if (String.fromCharCode(datax[0]) == 'a') {
+      //print('foot unpack');
       var val = newdata.sublist(2, 4);
       pgyroA = unpack(val) / 10.0;
       val = newdata.sublist(4, 6);
@@ -488,6 +490,7 @@ Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
     newdata[data.length] = 0x00;
 
     if (String.fromCharCode(datax[0]) == 'a') {
+      //print('knee unpack');
       var val = newdata.sublist(2, 4);
       pgyroA = unpack(val) / 10.0;
       val = newdata.sublist(4, 6);
