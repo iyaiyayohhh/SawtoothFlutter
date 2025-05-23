@@ -499,9 +499,8 @@ Map<String, dynamic> callbackUnpackK(List<int> datax, devtype) {
 
       // Process knee data immediately
       if (devtype == 'knee') {
-        kneejdataprox =
-            XComFitA(kneejdataprox, pgyroA, paccelA); // Update the first index
-        kneejdatadist = XComFitA(kneejdatadist, dgyroA, daccelA);
+        kneejdataprox = ComFitA(pgyroA, paccelA); // Update the first index
+        kneejdatadist = ComFitA(dgyroA, daccelA);
 
         kneejsonData["counter"] = counterk;
         kneejsonData["state"] = jdataStates;
