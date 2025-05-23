@@ -89,6 +89,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   //var _listHipsTime = [];
 
   List<int> kneeData = [];
+  List<int> footData = [];
+  List<int> hipsData = [];
 
   List<Map<String, dynamic>> rawKneeData = [];
   List<Map<String, dynamic>> rawFootData = [];
@@ -160,9 +162,13 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          kneeData = bytes1;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
-            kneeData = bytes1;
+
             //print('Knee: $bytes1');
           }
 
@@ -198,7 +204,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          footData = bytes2;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawFootData.add({
               'data': bytes2,
               'timestamp': DateTime.now(),
@@ -242,7 +252,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          if (_foundFoot & _foundKnee & _foundHips) {
+          hipsData = bytes3;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawHipsData.add({
               'data': bytes3,
               'timestamp': DateTime.now(),
@@ -302,6 +316,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   void _stopGeneratingData() {
     setState(() {
       _isRunning = false;
+      print('stop generating data');
+      print('knee: $rawKneeData');
+      print('foot: $rawFootData');
+      print('hips: $rawHipsData');
       //_gaitcyclegraph();
       //final first_foot = _timeFoot[0];
       //final first_knee = _timeKnee[0];
@@ -409,7 +427,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       for (var c in rawHipsData) {
         hipsjson = callbackUnpackHB(c['data'], 'hips');
         Map<String, dynamic> kneeHipDist = callbackUnpackK(c['knee'], 'knee');
-        //print('hips: $hipsjson');
+        print('hips: $hipsjson');
+        print('knee hip dist: $kneeHipDist');
         if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
           var hipsProx = hipsProxraw(hipsjson['prox']);
           //hipsprox is hips device and the distal is knee prox
@@ -421,6 +440,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': hipsProx - hipsDist,
           };
           _unpackHips.add(hipsPoint);
+          print('hips: $hipsPoint');
         }
       }
 
@@ -439,6 +459,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': kneeDist - kneeProx,
           };
           _unpackKnee.add(kneePoint);
+          print('knee: $kneePoint');
         }
       }
 
@@ -456,6 +477,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'dist': footDist,
             'angle': ((footProx + 90) - footDist) - 180,
           };
+          print('foot: $footPoint');
           _unpackFoot.add(footPoint);
         }
       }
@@ -525,6 +547,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       //int heelstrikeIndex = possibleHeelstrike(footState, _listFootTime);
 
       _kneedataPoints = _unpackKnee
+          .where((point) => point['angle'] != null)
           .map((point) => FlSpot(
                 //point['timestamp'].millisecondsSinceEpoch.toDouble(),
                 _unpackKnee.indexOf(point).toDouble() / 50,
@@ -532,6 +555,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               ))
           .toList();
       _footdataPoints = _unpackFoot
+          .where((point) => point['angle'] != null)
           .map((point) => FlSpot(
                 //point['timestamp'].millisecondsSinceEpoch.toDouble(),
                 _unpackFoot.indexOf(point).toDouble() / 50,
@@ -540,6 +564,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           .toList();
 
       _hipsdataPoints = _unpackHips
+          .where((point) => point['angle'] != null)
           .map((point) => FlSpot(
                 _unpackHips.indexOf(point).toDouble() / 50,
                 //point['timestamp'].millisecondsSinceEpoch.toDouble(),
@@ -713,11 +738,13 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            heroTag: 'start',
             onPressed: _isRunning ? null : _startGeneratingData,
             child: Text('Start'),
           ),
           const SizedBox(width: 20),
           FloatingActionButton(
+            heroTag: 'stop',
             onPressed: _isRunning ? _stopGeneratingData : null,
             child: Text('Stop'),
           ),
