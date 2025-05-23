@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'globals.dart' as globals;
@@ -103,7 +104,16 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   @override
   void initState() {
     super.initState();
-    _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate);
+    requestPermissions().then((_) {
+      _scanSub = _ble.scanForDevices(
+        withServices: [Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB')],
+        scanMode: ScanMode.balanced,
+      ).listen((device) {
+        _onScanUpdate(device);
+      }, onError: (error) {
+        print('Scan error: $error');
+      });
+    });
   }
 
   @override
@@ -116,6 +126,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     _connectSubHips?.cancel();
     _scanSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> requestPermissions() async {
+    await Permission.bluetoothScan.request();
+    await Permission.bluetoothConnect.request();
+    await Permission.locationWhenInUse.request();
   }
 
   void _onScanUpdate(DiscoveredDevice device) {
@@ -316,10 +332,10 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   void _stopGeneratingData() {
     setState(() {
       _isRunning = false;
-      print('stop generating data');
-      print('knee: $rawKneeData');
-      print('foot: $rawFootData');
-      print('hips: $rawHipsData');
+      //print('stop generating data');
+      print(rawKneeData.length);
+      print(rawFootData.length);
+      print(rawHipsData.length);
       //_gaitcyclegraph();
       //final first_foot = _timeFoot[0];
       //final first_knee = _timeKnee[0];
@@ -361,7 +377,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             one_ctr_knee = 1;
           }
           current_count_knee = kneejson['counter'];
-          if (current_count_knee == knee_count) {
+          if (current_count_knee == kneqe_count) {
             knee_count = current_count_knee;
             if (meta_count_knee >= 3) {
               meta_count_knee = 0;
@@ -425,10 +441,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
 
       // Process raw data for hips
       for (var c in rawHipsData) {
+        print(c);
         hipsjson = callbackUnpackHB(c['data'], 'hips');
         Map<String, dynamic> kneeHipDist = callbackUnpackK(c['knee'], 'knee');
-        print('hips: $hipsjson');
-        print('knee hip dist: $kneeHipDist');
+        //print('hips: $hipsjson');
+        //print('knee hip dist: $kneeHipDist');
         if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
           var hipsProx = hipsProxraw(hipsjson['prox']);
           //hipsprox is hips device and the distal is knee prox
