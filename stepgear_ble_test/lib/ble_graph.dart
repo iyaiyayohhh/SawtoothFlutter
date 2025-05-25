@@ -108,6 +108,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     requestPermissions().then((_) {
       _scanSub = _ble.scanForDevices(
         withServices: [Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB')],
+        scanMode: ScanMode.lowLatency,
       ).listen((device) {
         _onScanUpdate(device);
       }, onError: (error) {
@@ -168,11 +169,18 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     }
   }
 
-  void _onConnected(String deviceId, String deviceType) {
+  Future<void> _onConnected(String deviceId, String deviceType) async {
     final characteristic = QualifiedCharacteristic(
         characteristicId: Uuid.parse('0000ABF2-0000-1000-8000-00805F9B34FB'),
         serviceId: Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB'),
         deviceId: deviceId);
+
+    try {
+      final mtu = await _ble.requestMtu(deviceId: deviceId, mtu: 23);
+      print('MTU negotiated: $mtu');
+    } catch (e) {
+      print('Failed to negotiate MTU: $e');
+    }
 
     if (deviceType == 'knee') {
       _notifySubKnee =
