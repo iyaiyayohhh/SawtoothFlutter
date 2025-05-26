@@ -477,6 +477,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
           var hipsAngle = hipsProx - hipsDist;
           Map<String, dynamic> hipsPoint = {
             'timestamp': c['timestamp'],
+            'state': 0,
             'prox': hipsProx,
             'dist': hipsDist,
             'angle': hipsAngle,
@@ -814,14 +815,14 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
   }
 
   void _exportCSVData() {
-    List<String> nullList = List.filled(kneeData.length, '');
+    List<String> nullList = List.filled(5, '');
     int maxLength = [kneeRow.length, footRow.length, hipsRow.length]
         .reduce((a, b) => a > b ? a : b);
 
     for (int i = 0; i < maxLength; i++) {
-      data1 = kneeRow.length < i ? kneeRow[i] : nullList;
-      data2 = footRow.length < i ? footRow[i] : nullList;
-      data3 = hipsRow.length < i ? hipsRow[i] : nullList;
+      data1 = i < kneeRow.length ? kneeRow[i] : nullList;
+      data2 = i < footRow.length ? footRow[i] : nullList;
+      data3 = i < hipsRow.length ? hipsRow[i] : nullList;
 
       rowCSV = data1 + data2 + data3;
       tableCSV.add(rowCSV);
