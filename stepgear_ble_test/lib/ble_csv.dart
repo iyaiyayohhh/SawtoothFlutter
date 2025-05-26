@@ -814,7 +814,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
   }
 
   void _exportCSVData() {
-    List<String> nullList = List.filled(header.length, '');
+    List<String> nullList = List.filled(kneeData.length, '');
     int maxLength = [kneeRow.length, footRow.length, hipsRow.length]
         .reduce((a, b) => a > b ? a : b);
 
