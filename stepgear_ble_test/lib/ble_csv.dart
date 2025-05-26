@@ -4,9 +4,10 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:scidart/numdart.dart';
+//import 'package:scidart/numdart.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:to_csv/to_csv.dart' as exportCSV;
 //import 'globals.dart' as globals;
 
@@ -80,20 +81,24 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
   List<FlSpot> _footdataPoints = [];
   List<FlSpot> _hipsdataPoints = [];
 
+  List<int> kneeData = [];
+  List<int> footData = [];
+  List<int> hipsData = [];
+
   List<Map<String, dynamic>> rawKneeData = [];
   List<Map<String, dynamic>> rawFootData = [];
   List<Map<String, dynamic>> rawHipsData = [];
 
-  List<List<String>> kneelistOfLists = [];
-  List<List<String>> footlistOfLists = [];
-  List<List<String>> hipslistOfLists = [];
+  List<List<String>> kneeRow = [];
+  List<List<String>> footRow = [];
+  List<List<String>> hipsRow = [];
 
-  List<List<String>> listOfLists = [];
+  List<List<String>> tableCSV = [];
 
   List<String> data1 = [];
   List<String> data2 = [];
   List<String> data3 = [];
-  List<String> data4 = [];
+  List<String> rowCSV = [];
 
   List<String> header = [
     'knee time',
@@ -113,15 +118,24 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
     'computed angle'
   ];
 
-  List<int> footState = [];
-  List<int> kneeData = [];
+  List<int> footStateList = [];
+  int footState = 0;
 
   bool _isRunning = false;
 
   @override
   void initState() {
     super.initState();
-    _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate);
+    requestPermissions().then((_) {
+      _scanSub = _ble.scanForDevices(
+        withServices: [Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB')],
+        scanMode: ScanMode.lowLatency,
+      ).listen((device) {
+        _onScanUpdate(device);
+      }, onError: (error) {
+        print('Scan error: $error');
+      });
+    });
   }
 
   @override
@@ -134,6 +148,12 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
     _connectSubHips?.cancel();
     _scanSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> requestPermissions() async {
+    await Permission.bluetoothScan.request();
+    await Permission.bluetoothConnect.request();
+    await Permission.locationWhenInUse.request();
   }
 
   void _onScanUpdate(DiscoveredDevice device) {
@@ -170,19 +190,30 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
     }
   }
 
-  void _onConnected(String deviceId, String deviceType) {
+  Future<void> _onConnected(String deviceId, String deviceType) async {
     final characteristic = QualifiedCharacteristic(
         characteristicId: Uuid.parse('0000ABF2-0000-1000-8000-00805F9B34FB'),
         serviceId: Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB'),
         deviceId: deviceId);
 
+    // Request MTU negotiation
+    try {
+      final mtu = await _ble.requestMtu(deviceId: deviceId, mtu: 23);
+      print('MTU negotiated: $mtu');
+    } catch (e) {
+      print('Failed to negotiate MTU: $e');
+    }
+
     if (deviceType == 'knee') {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          kneeData = bytes1;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
-            kneeData = bytes1;
 
             //print('Knee: $bytes1');
           }
@@ -219,7 +250,11 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          footData = bytes2;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawFootData.add({
               'data': bytes2,
               'timestamp': DateTime.now(),
@@ -263,12 +298,17 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          if (_foundFoot & _foundKnee & _foundHips) {
+          hipsData = bytes3;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawHipsData.add({
               'data': bytes3,
               'timestamp': DateTime.now(),
               'knee': kneeData,
             });
+
             //print('Hips: $bytes3');
             //print('Hips: ${bytes3.length}');
           }
@@ -433,7 +473,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
         if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
           var hipsProx = hipsProxraw(hipsjson['prox']);
           //hipsprox is hips device and the distal is knee prox
-          var hipsDist = kneeDistraw(kneeHipDist[['prox']]);
+          var hipsDist = kneeDistraw(kneeHipDist['prox']);
           var hipsAngle = hipsProx - hipsDist;
           Map<String, dynamic> hipsPoint = {
             'timestamp': c['timestamp'],
@@ -442,7 +482,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
             'angle': hipsAngle,
           };
           _unpackHips.add(hipsPoint);
-          hipslistOfLists.add([
+          hipsRow.add([
             hipsPoint['timestamp'].toString(),
             hipsProx.toString(),
             hipsDist.toString(),
@@ -464,7 +504,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
             'angle': kneeAngle,
           };
           _unpackKnee.add(kneePoint);
-          kneelistOfLists.add([
+          kneeRow.add([
             kneePoint['timestamp'].toString(),
             kneePoint['state'].toString(),
             kneeProx.toString(),
@@ -481,6 +521,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
           var footProx = footProxraw(footjson['prox']);
           var footDist = kneeDistraw(footKneeDist['dist']);
           footState = footjson['state'];
+          footStateList.add(footjson['state']);
           var footAngle = ((footProx + 90) - footDist) - 180;
           Map<String, dynamic> footPoint = {
             'timestamp': a['timestamp'],
@@ -490,7 +531,7 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
             'angle': footAngle,
           };
           _unpackFoot.add(footPoint);
-          footlistOfLists.add([
+          footRow.add([
             footPoint['timestamp'].toString(),
             footState.toString(),
             footProx.toString(),
@@ -559,13 +600,8 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
         print('hips: $_hipsdataPoints');
       }
 */
-      for (var j = 0; j < kneelistOfLists.length - 1; j++) {
-        data4 = kneelistOfLists[j] + footlistOfLists[j] + hipslistOfLists[j];
-        listOfLists.add(data4);
-      }
-      ;
-      //print(listOfLists);
-      exportCSV.myCSV(header, listOfLists);
+
+      //print(tableCSV);
 
       _kneedataPoints = timeKnee
           .map((point) => FlSpot(
@@ -756,17 +792,41 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            heroTag: 'start',
             onPressed: _isRunning ? null : _startGeneratingData,
             child: Text('Start'),
           ),
           SizedBox(width: 20),
           FloatingActionButton(
+            heroTag: 'stop',
             onPressed: _isRunning ? _stopGeneratingData : null,
             child: Text('Stop'),
           ),
           SizedBox(width: 20),
+          FloatingActionButton(
+            heroTag: 'export',
+            onPressed: _exportCSVData,
+            child: Text('Export'),
+          ),
         ],
       ),
     );
+  }
+
+  void _exportCSVData() {
+    List<String> nullList = List.filled(header.length, '');
+    int maxLength = [kneeRow.length, footRow.length, hipsRow.length]
+        .reduce((a, b) => a > b ? a : b);
+
+    for (int i = 0; i < maxLength; i++) {
+      data1 = kneeRow.length < i ? kneeRow[i] : nullList;
+      data2 = footRow.length < i ? footRow[i] : nullList;
+      data3 = hipsRow.length < i ? hipsRow[i] : nullList;
+
+      rowCSV = data1 + data2 + data3;
+      tableCSV.add(rowCSV);
+    }
+
+    exportCSV.myCSV(header, tableCSV);
   }
 }
