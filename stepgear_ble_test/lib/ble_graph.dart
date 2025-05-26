@@ -1,3 +1,4 @@
+/*
 import 'dart:async';
 //import 'dart:typed_data';
 
@@ -413,7 +414,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
           var hipsProx = hipsProxraw(hipsjson['prox']);
           //hipsprox is hips device and the distal is knee prox
-          var hipsDist = kneeDistraw(kneeHipDist[['prox']]);
+          var hipsDist = kneeDistraw(kneeHipDist['prox']);
           Map<String, dynamic> hipsPoint = {
             'timestamp': c['timestamp'],
             'prox': hipsProx,
@@ -727,3 +728,4 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     );
   }
 }
+*/
