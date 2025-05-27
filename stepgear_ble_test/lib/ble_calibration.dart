@@ -5,17 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
+import 'package:stepgear_ble_test/ble_csv.dart';
 import 'package:stepgear_ble_test/ble_graph.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 import 'package:collection/collection.dart';
-//import 'globals.dart' as globals;
-
-//import 'package:new_project/Callback.dart';
-//import 'package:new_project/Providers/UsernameProvider.dart';
-//import 'package:new_project/data/AngleData.dart';
-//import 'package:provider/provider.dart';
-//import 'package:simple_kalman/simple_kalman.dart';
-//import 'package:new_project/global_calib.dart' as globals_calib;
 
 class CalibrationPage extends StatelessWidget {
   final FlutterReactiveBle ble;
@@ -453,6 +446,27 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                               )));
                 },
                 child: const Text('Gait Graph')),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GaitCSV(
+                                ble: widget.ble,
+                                kneeDeviceId: kneeDeviceId!,
+                                footDeviceId: footDeviceId!,
+                                hipsDeviceId: hipsDeviceId!,
+                                kneeProxCalib: kneeProxCalib,
+                                footProxCalib: footProxCalib,
+                                hipsProxCalib: hipsProxCalib,
+                                kneeDistCalib: kneeDistCalib,
+                              )));
+                },
+                child: const Text('Save CSV')),
 
             /*
             ElevatedButton(
