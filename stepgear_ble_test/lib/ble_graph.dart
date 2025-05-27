@@ -10,13 +10,6 @@ import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'globals.dart' as globals;
 
-//import 'package:new_project/Callback.dart';
-//import 'package:new_project/Providers/UsernameProvider.dart';
-//import 'package:new_project/data/AngleData.dart';
-//import 'package:provider/provider.dart';
-//import 'package:simple_kalman/simple_kalman.dart';
-//import 'package:new_project/global_calib.dart' as globals_calib;
-
 class GaitGraph extends StatelessWidget {
   final FlutterReactiveBle ble;
   final String kneeDeviceId;
@@ -686,7 +679,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               height: 20,
               width: 20,
             ),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
               child: AspectRatio(
                 aspectRatio: 1.8,
@@ -697,16 +690,16 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                         spots: _kneedataPoints,
                         //isCurved: true,
                         isCurved: false,
-                        dotData: FlDotData(
+                        dotData: const FlDotData(
                           show: false,
                         ),
                       ),
                     ],
-                    titlesData: FlTitlesData(
+                    titlesData: const FlTitlesData(
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
-                      topTitles: const AxisTitles(
+                      topTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
                     ),
@@ -732,7 +725,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               height: 20,
               width: 20,
             ),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
               child: AspectRatio(
                 aspectRatio: 1.8,
@@ -743,12 +736,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                         spots: _footdataPoints,
                         //isCurved: true,
                         isCurved: false,
-                        dotData: FlDotData(
+                        dotData: const FlDotData(
                           show: false,
                         ),
                       ),
                     ],
-                    titlesData: FlTitlesData(
+                    titlesData: const FlTitlesData(
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
@@ -778,7 +771,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
               height: 20,
               width: 20,
             ),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
               child: AspectRatio(
                 aspectRatio: 1.8,
@@ -789,12 +782,12 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
                         spots: _hipsdataPoints,
                         //isCurved: true,
                         isCurved: false,
-                        dotData: FlDotData(
+                        dotData: const FlDotData(
                           show: false,
                         ),
                       ),
                     ],
-                    titlesData: FlTitlesData(
+                    titlesData: const FlTitlesData(
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),

@@ -712,16 +712,16 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
                         spots: _kneedataPoints,
                         //isCurved: true,
                         isCurved: false,
-                        dotData: FlDotData(
+                        dotData: const FlDotData(
                           show: false,
                         ),
                       ),
                     ],
-                    titlesData: FlTitlesData(
+                    titlesData: const FlTitlesData(
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
-                      topTitles: const AxisTitles(
+                      topTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
                     ),
@@ -758,12 +758,12 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
                         spots: _footdataPoints,
                         //isCurved: true,
                         isCurved: false,
-                        dotData: FlDotData(
+                        dotData: const FlDotData(
                           show: false,
                         ),
                       ),
                     ],
-                    titlesData: FlTitlesData(
+                    titlesData: const FlTitlesData(
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
@@ -804,12 +804,12 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
                         spots: _hipsdataPoints,
                         //isCurved: true,
                         isCurved: false,
-                        dotData: FlDotData(
+                        dotData: const FlDotData(
                           show: false,
                         ),
                       ),
                     ],
-                    titlesData: FlTitlesData(
+                    titlesData: const FlTitlesData(
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
@@ -834,19 +834,19 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
           FloatingActionButton(
             heroTag: 'start',
             onPressed: _isRunning ? null : _startGeneratingData,
-            child: Text('Start'),
+            child: const Text('Start'),
           ),
-          SizedBox(width: 20),
+          const SizedBox(width: 20),
           FloatingActionButton(
             heroTag: 'stop',
             onPressed: _isRunning ? _stopGeneratingData : null,
-            child: Text('Stop'),
+            child: const Text('Stop'),
           ),
-          SizedBox(width: 20),
+          const SizedBox(width: 20),
           FloatingActionButton(
             heroTag: 'export',
             onPressed: _exportCSVData,
-            child: Text('Export'),
+            child: const Text('Export'),
           ),
         ],
       ),
