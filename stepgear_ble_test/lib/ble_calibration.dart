@@ -37,6 +37,14 @@ class CalibrationPageScreen extends StatefulWidget {
 
 class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   late final FlutterReactiveBle _ble;
+  final TextEditingController _kneeProxCalibController =
+      TextEditingController();
+  final TextEditingController _footProxCalibController =
+      TextEditingController();
+  final TextEditingController _hipsProxCalibController =
+      TextEditingController();
+  final TextEditingController _kneeDistCalibController =
+      TextEditingController();
 
   StreamSubscription<DiscoveredDevice>? _scanSub;
   StreamSubscription<ConnectionStateUpdate>? _connectSubKnee;
@@ -93,6 +101,10 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   void initState() {
     super.initState();
     _ble = widget.ble;
+    _kneeProxCalibController.text = kneeProxCalib.toString();
+    _footProxCalibController.text = footProxCalib.toString();
+    _hipsProxCalibController.text = hipsProxCalib.toString();
+    _kneeDistCalibController.text = kneeDistCalib.toString();
     requestPermissions().then((_) {
       _scanSub = _ble.scanForDevices(withServices: []).listen(_onScanUpdate,
           onError: (e) {
@@ -110,6 +122,10 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
     //_connectSubKnee?.cancel();
     //_connectSubFoot?.cancel();
     //_connectSubHips?.cancel();
+    _kneeProxCalibController.dispose();
+    _kneeDistCalibController.dispose();
+    _footProxCalibController.dispose();
+    _hipsProxCalibController.dispose();
     _scanSub?.cancel();
     super.dispose();
   }
@@ -291,19 +307,49 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
             ),
             Text('Knee Prox Calib: $kneeProxCalib',
                 style: Theme.of(context).textTheme.titleLarge),
-            Slider(
-              value: kneeProxCalib,
-              min: -20,
-              max: 20,
-              divisions: 80,
-              label: kneeProxCalib.round().toString(),
-              onChanged: (_isRunning
-                  ? null
-                  : (value) {
-                      setState(() {
-                        kneeProxCalib = value;
-                      });
-                    }),
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: _kneeProxCalibController,
+                enabled: !_isRunning,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration:
+                    const InputDecoration(labelText: 'Enter knee prox calib'),
+                onChanged: (value) {
+                  final parsed = double.tryParse(value);
+                  if (parsed != null) {
+                    setState(() {
+                      kneeProxCalib = parsed;
+                    });
+                  }
+                },
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+              width: 20,
+            ),
+            Text('Knee Dist Calib: $kneeDistCalib',
+                style: Theme.of(context).textTheme.titleLarge),
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: _kneeDistCalibController,
+                enabled: !_isRunning,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration:
+                    const InputDecoration(labelText: 'Enter knee dist calib'),
+                onChanged: (value) {
+                  final parsed = double.tryParse(value);
+                  if (parsed != null) {
+                    setState(() {
+                      kneeDistCalib = parsed;
+                    });
+                  }
+                },
+              ),
             ),
             const SizedBox(
               height: 20,
@@ -320,19 +366,24 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
             ),
             Text('Foot Prox Calib: $footProxCalib',
                 style: Theme.of(context).textTheme.titleLarge),
-            Slider(
-              value: footProxCalib,
-              min: -20,
-              max: 20,
-              divisions: 80,
-              label: footProxCalib.round().toString(),
-              onChanged: (_isRunning
-                  ? null
-                  : (value) {
-                      setState(() {
-                        footProxCalib = value;
-                      });
-                    }),
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: _footProxCalibController,
+                enabled: !_isRunning,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration:
+                    const InputDecoration(labelText: 'Enter foot prox calib'),
+                onChanged: (value) {
+                  final parsed = double.tryParse(value);
+                  if (parsed != null) {
+                    setState(() {
+                      footProxCalib = parsed;
+                    });
+                  }
+                },
+              ),
             ),
             const SizedBox(
               height: 20,
@@ -349,19 +400,24 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
             ),
             Text('Hips Prox Calib: $hipsProxCalib',
                 style: Theme.of(context).textTheme.titleLarge),
-            Slider(
-              value: hipsProxCalib,
-              min: -20,
-              max: 20,
-              divisions: 80,
-              label: hipsProxCalib.round().toString(),
-              onChanged: (_isRunning
-                  ? null
-                  : (value) {
-                      setState(() {
-                        hipsProxCalib = value;
-                      });
-                    }),
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: _hipsProxCalibController,
+                enabled: !_isRunning,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration:
+                    const InputDecoration(labelText: 'Enter hips prox calib'),
+                onChanged: (value) {
+                  final parsed = double.tryParse(value);
+                  if (parsed != null) {
+                    setState(() {
+                      hipsProxCalib = parsed;
+                    });
+                  }
+                },
+              ),
             ),
             const SizedBox(
               height: 20,
