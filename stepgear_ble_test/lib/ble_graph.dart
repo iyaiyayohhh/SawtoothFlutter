@@ -5,7 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:scidart/numdart.dart';
+//import 'package:scidart/numdart.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 //import 'globals.dart' as globals;
@@ -143,8 +143,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   List<Map<String, dynamic>> rawHipsData = [];
 
   List<int> kneeData = [];
+  List<int> footData = [];
+  List<int> hipsData = [];
 
-  List<int> footState = [];
+  List<int> footStateList = [];
+  int footState = 0;
 
   bool _isRunning = false;
 
@@ -218,21 +221,30 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
     }
   }
 
-  void _onConnected(String deviceId, String deviceType) {
+  Future<void> _onConnected(String deviceId, String deviceType) async {
     final characteristic = QualifiedCharacteristic(
         characteristicId: Uuid.parse('0000ABF2-0000-1000-8000-00805F9B34FB'),
         serviceId: Uuid.parse('0000ABF0-0000-1000-8000-00805F9B34FB'),
         deviceId: deviceId);
 
+    try {
+      final mtu = await _ble.requestMtu(deviceId: deviceId, mtu: 23);
+      print('MTU negotiated: $mtu');
+    } catch (e) {
+      print('Failed to negotiate MTU: $e');
+    }
+
     if (deviceType == 'knee') {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          _foundKnee = true;
-          if (_isRunning & _foundKnee & _foundFoot & _foundHips) {
-            kneeData = bytes1;
+          kneeData = bytes1;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
-            //print(rawKneeData.last);
+
             //print('Knee: $bytes1');
           }
 
@@ -268,8 +280,11 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
-          _foundFoot = true;
-          if (_isRunning & _foundKnee & _foundFoot & _foundHips) {
+          footData = bytes2;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawFootData.add({
               'data': bytes2,
               'timestamp': DateTime.now(),
@@ -314,13 +329,17 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          _foundHips = true;
-          if (_isRunning & _foundFoot & _foundKnee & _foundHips) {
+          hipsData = bytes3;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawHipsData.add({
               'data': bytes3,
               'timestamp': DateTime.now(),
               'knee': kneeData,
             });
+
             //print(rawHipsData.last);
 
             //print('Hips: $bytes3');
@@ -492,7 +511,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           //print('hipsProx: $hipsProx');
           //hipsprox is hips device and the distal is knee prox
           var hipsDist =
-              kneeDistraw(kneeHipDist[['prox']]) - widget.kneeProxCalib;
+              kneeDistraw(kneeHipDist['prox']) - widget.kneeProxCalib;
           Map<String, dynamic> hipsPoint = {
             'timestamp': c['timestamp'],
             'prox': hipsProx,
@@ -500,7 +519,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': hipsProx - hipsDist,
           };
           _unpackHips.add(hipsPoint);
-          print('hips: $hipsPoint');
+          //print('hips: $hipsPoint');
         }
       }
 
@@ -519,7 +538,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
             'angle': kneeDist - kneeProx,
           };
           _unpackKnee.add(kneePoint);
-          print('knee: $kneePoint');
+          //print('knee: $kneePoint');
         }
       }
 
@@ -531,6 +550,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           var footDist =
               kneeDistraw(footKneeDist['dist']) - widget.kneeDistCalib;
           footState = footjson['state'];
+          footStateList.add(footState);
           Map<String, dynamic> footPoint = {
             'timestamp': a['timestamp'],
             'state': footState,
@@ -540,7 +560,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           };
           //print('foot: $footProx');
           _unpackFoot.add(footPoint);
-          print('foot: $footPoint');
+          //print('foot: $footPoint');
         }
       }
       /*
