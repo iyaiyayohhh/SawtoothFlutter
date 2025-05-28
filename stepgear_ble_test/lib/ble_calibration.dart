@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:scidart/numdart.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/ble_graph.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
@@ -81,6 +82,17 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   double kneeDistCalib = 0.0;
   double footProxCalib = 0.0;
   double hipsProxCalib = 0.0;
+
+  List<int> kneeData = [];
+  List<int> footData = [];
+  List<int> hipsData = [];
+
+  var kneeProx = 0.0;
+  var kneeDist = 0.0;
+  var footProx = 0.0;
+  var footDist = 0.0;
+  var hipsProx = 0.0;
+  var hipsDist = 0.0;
 
   var _valueKnee = '';
   var _valueFoot = '';
@@ -177,8 +189,19 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       _notifySubKnee =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          kneeData = bytes1;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawKneeCalib.add(bytes1);
+            kneejson = callbackUnpackK(bytes1, 'knee');
+            if (kneejson.isNotEmpty) {
+              kneeProx = kneeProxraw(kneejson['prox']);
+              kneeDist = kneeDistraw(kneejson['dist']);
+              _valueKnee = (kneeDist - kneeProx).toStringAsFixed(2);
+            }
+
             //print('Knee: $bytes1');
           }
         });
@@ -187,9 +210,22 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       _notifySubFoot =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
-          if (_foundKnee & _foundFoot & _foundHips) {
+          footData = bytes2;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawFootCalib.add(bytes2);
             //print('Foot: $bytes2');
+            footjson = callbackUnpackF(bytes2, 'foot');
+            Map<String, dynamic> footKneeDist =
+                callbackUnpackK(kneeData, 'knee');
+            if (footjson.isNotEmpty && footKneeDist.isNotEmpty) {
+              footProx = footProxraw(footjson['prox']);
+              footDist = kneeDistraw(footKneeDist['dist']);
+              _valueFoot =
+                  (((footProx + 90) - footDist) - 180).toStringAsFixed(2);
+            }
           }
         });
       });
@@ -197,10 +233,21 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       _notifySubHips =
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
-          if (_foundFoot & _foundKnee & _foundHips) {
+          hipsData = bytes3;
+          if (_isRunning &
+              kneeData.isNotEmpty &
+              footData.isNotEmpty &
+              hipsData.isNotEmpty) {
             rawHipsCalib.add(bytes3);
-            //print('Hips: $bytes3');
-            //print('Hips: ${bytes3.length}');
+            hipsjson = callbackUnpackHB(bytes3, 'hips');
+            Map<String, dynamic> kneeHipDist =
+                callbackUnpackK(kneeData, 'knee');
+
+            if (hipsjson.isNotEmpty && kneeHipDist.isNotEmpty) {
+              hipsProx = hipsProxraw(hipsjson['prox']);
+              hipsDist = kneeDistraw(kneeHipDist['prox']);
+              _valueHips = (hipsDist - hipsProx).toStringAsFixed(2);
+            }
           }
         });
       });
@@ -224,54 +271,6 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   void _stopGeneratingData() {
     setState(() {
       _isRunning = false;
-
-      // Process raw data for hips
-
-      for (var b in rawKneeCalib) {
-        kneejson = callbackUnpackK(b, 'knee');
-        //print('kneejson: $kneejson');
-        if (kneejson.isNotEmpty) {
-          var kneeProx = kneeProxraw(kneejson['prox']);
-          var kneeDist = kneeDistraw(kneejson['dist']);
-          valKneeProx.add(kneeProx);
-          valKneeDist.add(kneeDist);
-        }
-      }
-      //print(valKneeProx);
-      averageKneeProx = valKneeProx.average;
-      averageKneeDist = valKneeDist.average;
-      _valueKnee = (averageKneeDist - averageKneeProx).toStringAsFixed(2);
-      //print('Knee: $_valueKnee Prox: $averageKneeProx Dist: $averageKneeDist');
-
-      for (var a in rawFootCalib) {
-        footjson = callbackUnpackF(a, 'foot');
-        //print('footjson: $footjson');
-        if (footjson.isNotEmpty) {
-          var footProx = footProxraw(footjson['prox']);
-          var footStateValue = footjson['state'];
-          valFootProx.add(footProx);
-          footState.add(footStateValue);
-        }
-      }
-      averageFootProx = valFootProx.average;
-      _valueFoot =
-          (((averageFootProx + 90) - averageKneeDist) - 180).toStringAsFixed(2);
-
-      for (var c in rawHipsCalib) {
-        hipsjson = callbackUnpackHB(c, 'hips');
-        //print('hips: $hipsjson');
-        if (hipsjson.isNotEmpty) {
-          var hipsProx = hipsProxraw(hipsjson['prox']);
-          valHipsProx.add(hipsProx);
-        }
-      }
-      averageHipsProx = valHipsProx.average;
-      _valueHips = (averageKneeProx - averageHipsProx).toStringAsFixed(2);
-
-      // Clear the buffers after processing
-      rawKneeCalib.clear();
-      rawFootCalib.clear();
-      rawHipsCalib.clear();
     });
   }
 
@@ -291,8 +290,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
             ),
             _valueKnee.isEmpty
                 ? const CircularProgressIndicator()
-                : Text(
-                    "Knee:  $_valueKnee Prox: $averageKneeProx Dist: $averageKneeDist",
+                : Text("Knee:  $_valueKnee Prox: $kneeProx Dist: $kneeDist",
                     style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(
               height: 20,
@@ -350,8 +348,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
             ),
             _valueFoot.isEmpty
                 ? const CircularProgressIndicator()
-                : Text(
-                    "Foot:  $_valueFoot Prox: $averageFootProx Dist: $averageKneeDist",
+                : Text("Foot:  $_valueFoot Prox: $footProx Dist: $footDist",
                     style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(
               height: 20,
@@ -384,8 +381,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
             ),
             _valueHips.isEmpty
                 ? const CircularProgressIndicator()
-                : Text(
-                    "Hips:  $_valueHips Prox: $averageHipsProx Dist: $averageKneeProx",
+                : Text("Hips:  $_valueHips Prox: $hipsProx Dist: $hipsDist",
                     style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(
               height: 20,
