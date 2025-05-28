@@ -8,14 +8,6 @@ import 'package:stepgear_ble_test/angle_data.dart';
 import 'package:stepgear_ble_test/ble_graph.dart';
 import 'package:stepgear_ble_test/data_unpack.dart';
 import 'package:collection/collection.dart';
-//import 'globals.dart' as globals;
-
-//import 'package:new_project/Callback.dart';
-//import 'package:new_project/Providers/UsernameProvider.dart';
-//import 'package:new_project/data/AngleData.dart';
-//import 'package:provider/provider.dart';
-//import 'package:simple_kalman/simple_kalman.dart';
-//import 'package:new_project/global_calib.dart' as globals_calib;
 
 class CalibrationPage extends StatelessWidget {
   final FlutterReactiveBle ble;
@@ -47,6 +39,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
       TextEditingController();
 
   StreamSubscription<DiscoveredDevice>? _scanSub;
+
   StreamSubscription<ConnectionStateUpdate>? _connectSubKnee;
   StreamSubscription<ConnectionStateUpdate>? _connectSubFoot;
   StreamSubscription<ConnectionStateUpdate>? _connectSubHips;
@@ -340,7 +333,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration:
-                    const InputDecoration(labelText: 'Enter knee dist calib'),
+                    const InputDecoration(labelText: 'Enter knee dist value'),
                 onChanged: (value) {
                   final parsed = double.tryParse(value);
                   if (parsed != null) {
@@ -374,7 +367,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration:
-                    const InputDecoration(labelText: 'Enter foot prox calib'),
+                    const InputDecoration(labelText: 'Enter foot prox value'),
                 onChanged: (value) {
                   final parsed = double.tryParse(value);
                   if (parsed != null) {
@@ -408,7 +401,7 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration:
-                    const InputDecoration(labelText: 'Enter hips prox calib'),
+                    const InputDecoration(labelText: 'Enter hips prox value'),
                 onChanged: (value) {
                   final parsed = double.tryParse(value);
                   if (parsed != null) {
