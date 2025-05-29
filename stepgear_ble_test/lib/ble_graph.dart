@@ -93,6 +93,8 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
   List<int> footData = [];
   List<int> hipsData = [];
 
+  List<int> packet = [];
+
   List<Map<String, dynamic>> rawKneeData = [];
   List<Map<String, dynamic>> rawFootData = [];
   List<Map<String, dynamic>> rawHipsData = [];
@@ -175,7 +177,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         deviceId: deviceId);
 
     try {
-      final mtu = await _ble.requestMtu(deviceId: deviceId, mtu: 23);
+      final mtu = await _ble.requestMtu(deviceId: deviceId, mtu: 63);
       print('MTU negotiated: $mtu');
     } catch (e) {
       print('Failed to negotiate MTU: $e');
@@ -186,10 +188,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           _ble.subscribeToCharacteristic(characteristic).listen((bytes1) {
         setState(() {
           kneeData = bytes1;
-          if (_isRunning &
-              kneeData.isNotEmpty &
-              footData.isNotEmpty &
-              hipsData.isNotEmpty) {
+          if (_isRunning == true) {
             rawKneeData.add({'data': bytes1, 'timestamp': DateTime.now()});
 
             //print('Knee: $bytes1');
@@ -228,11 +227,14 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           _ble.subscribeToCharacteristic(characteristic).listen((bytes2) {
         setState(() {
           footData = bytes2;
-          rawFootData.add({
-            'data': bytes2,
-            'timestamp': DateTime.now(),
-            //'knee': kneeData,
-          });
+          if (_isRunning == true) {
+            rawFootData.add({
+              'data': bytes2,
+              'timestamp': DateTime.now(),
+              //'knee': kneeData,
+            });
+          }
+
           //print('Foot: $bytes2');
 
           /*
@@ -271,13 +273,15 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           _ble.subscribeToCharacteristic(characteristic).listen((bytes3) {
         setState(() {
           hipsData = bytes3;
-          rawHipsData.add({
-            'data': bytes3,
-            'timestamp': DateTime.now(),
-            //'knee': kneeData,
-          });
+          if (_isRunning == true) {
+            rawHipsData.add({
+              'data': bytes3,
+              'timestamp': DateTime.now(),
+              //'knee': kneeData,
+            });
+          }
 
-          //print('Hips: $bytes3');
+          print('Hips: $bytes3');
           //print('Hips: ${bytes3.length}');
 
           /*
@@ -435,30 +439,40 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
         }
       }
       */
-      /*
 
       // Process raw data for hips
       for (var c in rawHipsData) {
-        hipsjson = callbackUnpackHB(c['data'], 'hips');
-        Map<String, dynamic> kneeHipDist = callbackUnpackK(c['knee'], 'knee');
-        //print('hips: $hipsjson');
-        //print('knee hip dist: $kneeHipDist');
-        if (hipsjson.isNotEmpty /*&& kneeHipDist.isNotEmpty */) {
-          var hipsProx = hipsProxraw(hipsjson['prox']);
-          //hipsprox is hips device and the distal is knee prox
-          var hipsDist = kneeDistraw(kneeHipDist['prox']);
-          Map<String, dynamic> hipsPoint = {
-            'timestamp': c['timestamp'],
-            'prox': hipsProx,
-            'dist': hipsDist,
-            //'dist': 0.0,
-            'angle': hipsProx - hipsDist,
-          };
-          _unpackHips.add(hipsPoint);
-          //print('hips: $hipsPoint');
+        int packetSize = 10;
+        int numPackets = 4;
+        for (int i = 0; i < numPackets; i++) {
+          int startIndex = i * packetSize;
+          int endIndex = startIndex + packetSize;
+          if (endIndex > c['data'].length) {
+            endIndex = c['data'].length;
+          }
+          packet = c['data'].sublist(startIndex, endIndex);
+          //print('Packet $i: $packetData');
+          hipsjson = callbackUnpackHB(packet, 'hips');
+          //Map<String, dynamic> kneeHipDist = callbackUnpackK(c['knee'], 'knee');
+          //print('hips: $hipsjson');
+          //print('knee hip dist: $kneeHipDist');
+          if (hipsjson.isNotEmpty /*&& kneeHipDist.isNotEmpty */) {
+            var hipsProx = hipsProxraw(hipsjson['prox']);
+            //hipsprox is hips device and the distal is knee prox
+            //var hipsDist = kneeDistraw(kneeHipDist['prox']);
+            Map<String, dynamic> hipsPoint = {
+              'timestamp': c['timestamp'],
+              'prox': hipsProx,
+              //'dist': hipsDist,
+              //'dist': 0.0,
+              //'angle': hipsProx - hipsDist,
+            };
+            _unpackHips.add(hipsPoint);
+            //print('hips: $hipsPoint');
+          }
         }
       }
-      */
+      /*
 
       for (var b in rawKneeData) {
         kneejson = callbackUnpackK(b['data'], 'knee');
@@ -478,6 +492,7 @@ class _GaitGraphScreenState extends State<GaitGraphScreen> {
           //print('knee: $kneePoint');
         }
       }
+      */
 
       /*
 
