@@ -484,7 +484,10 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
           };
           _unpackHips.add(hipsPoint);
           hipsRow.add([
-            hipsPoint['timestamp'].toString(),
+            (hipsPoint['timestamp'] as DateTime)
+                .millisecondsSinceEpoch
+                .toString(), // Convert timestamp to string
+            hipsPoint['state'].toString(),
             hipsProx.toString(),
             hipsDist.toString(),
             hipsAngle.toString()
@@ -506,7 +509,9 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
           };
           _unpackKnee.add(kneePoint);
           kneeRow.add([
-            kneePoint['timestamp'].toString(),
+            (kneePoint['timestamp'] as DateTime)
+                .millisecondsSinceEpoch
+                .toString(), // Convert timestamp to string
             kneePoint['state'].toString(),
             kneeProx.toString(),
             kneeDist.toString(),
@@ -533,7 +538,9 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
           };
           _unpackFoot.add(footPoint);
           footRow.add([
-            footPoint['timestamp'].toString(),
+            (footPoint['timestamp'] as DateTime)
+                .millisecondsSinceEpoch
+                .toString(),
             footState.toString(),
             footProx.toString(),
             footDist.toString(),
