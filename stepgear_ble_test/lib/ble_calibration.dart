@@ -2,6 +2,7 @@ import 'dart:async';
 //import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stepgear_ble_test/angle_data.dart';
@@ -309,8 +310,11 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               child: TextField(
                 controller: _kneeProxCalibController,
                 enabled: !_isRunning,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true, signed: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+                ],
                 decoration:
                     const InputDecoration(labelText: 'Enter knee prox calib'),
                 onChanged: (value) {
@@ -334,8 +338,11 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               child: TextField(
                 controller: _kneeDistCalibController,
                 enabled: !_isRunning,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true, signed: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+                ],
                 decoration:
                     const InputDecoration(labelText: 'Enter knee dist value'),
                 onChanged: (value) {
@@ -368,8 +375,11 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               child: TextField(
                 controller: _footProxCalibController,
                 enabled: !_isRunning,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true, signed: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+                ],
                 decoration:
                     const InputDecoration(labelText: 'Enter foot prox value'),
                 onChanged: (value) {
@@ -402,8 +412,11 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
               child: TextField(
                 controller: _hipsProxCalibController,
                 enabled: !_isRunning,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true, signed: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+                ],
                 decoration:
                     const InputDecoration(labelText: 'Enter hips prox value'),
                 onChanged: (value) {
