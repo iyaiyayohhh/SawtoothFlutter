@@ -159,9 +159,13 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
   void _onScanUpdate(DiscoveredDevice device) {
     if (device.name == 'KNEESPP_SERVER' && !_foundKnee) {
       _foundKnee = true;
-      _connectSubKnee = _ble.connectToDevice(id: device.id).listen((update) {
+      _connectSubKnee =
+          _ble.connectToDevice(id: device.id).listen((update) async {
         if (update.connectionState == DeviceConnectionState.connected) {
           _onConnected(device.id, 'knee');
+          await _ble.requestConnectionPriority(
+              deviceId: device.id,
+              priority: ConnectionPriority.highPerformance);
         } else if (update.connectionState ==
             DeviceConnectionState.disconnected) {
           _foundKnee = false;
@@ -647,6 +651,26 @@ class _GaitCSVScreenState extends State<GaitCSVScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            Icon(
+              Icons.circle,
+              color: _foundKnee ? Colors.green : Colors.red,
+              size: 16,
+            ),
+            const SizedBox(height: 4),
+            Icon(
+              Icons.circle,
+              color: _foundFoot ? Colors.green : Colors.red,
+              size: 16,
+            ),
+            const SizedBox(height: 4),
+            Icon(
+              Icons.circle,
+              color: _foundHips ? Colors.green : Colors.red,
+              size: 16,
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(height: 4),
+            const Text('Knee', style: TextStyle(fontSize: 12)),
             const SizedBox(
               width: 20,
               height: 20,
