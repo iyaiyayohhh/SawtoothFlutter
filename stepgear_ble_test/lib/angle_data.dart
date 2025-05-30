@@ -24,7 +24,7 @@ double footProxraw(double proxValuesFoot) {
     proxValuesFoot = proxValuesFoot - 360;
   }
   //15 degrees offset for foot angle elevation
-  return proxValuesFoot - 15;
+  return proxValuesFoot + 15;
 }
 
 double hipsProxraw(double proxValuesHips) {
