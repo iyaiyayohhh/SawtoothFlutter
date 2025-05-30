@@ -132,9 +132,13 @@ class _CalibrationPageScreenState extends State<CalibrationPageScreen> {
   void _onScanUpdate(DiscoveredDevice device) {
     if (device.name == 'KNEESPP_SERVER' && !_foundKnee) {
       _foundKnee = true;
-      _connectSubKnee = _ble.connectToDevice(id: device.id).listen((update) {
+      _connectSubKnee =
+          _ble.connectToDevice(id: device.id).listen((update) async {
         if (update.connectionState == DeviceConnectionState.connected) {
           _onConnected(device.id, 'knee');
+          await _ble.requestConnectionPriority(
+              deviceId: device.id,
+              priority: ConnectionPriority.highPerformance);
           kneeDeviceId = device.id;
           //store device id for next page
         } else if (update.connectionState ==
